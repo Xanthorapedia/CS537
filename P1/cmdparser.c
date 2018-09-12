@@ -18,7 +18,8 @@ int read_proc_info(pid_t pid, proc_info *proc_info) {
 	char buf[32];
 	snprintf(buf, sizeof(buf), "/proc/%d/stat", pid);
 	FILE* stat_file = fopen(buf, "r");
-	fscanf(stat_file, "%*d (%s) %c", &proc_info->cmd, &proc_info->state, &);
+	fscanf(stat_file, "%*d (%s) %c", &proc_info->cmd, &proc_info->state, &?);
+
 }
 
 // Retrieves an array of process info based on "options"
