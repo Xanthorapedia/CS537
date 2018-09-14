@@ -12,6 +12,15 @@ int parse_ops(int argc, char *argv[], ps_ops *options) {
 	// 	options->flags |= PROG_STATE
 }
 
+// Lists all pids currently in /proc
+// If "pids" is NULL, the function only updates "n_proc" to the number of
+// process present
+// Else, at most "*n_proc" process infos are retrieved to "pids"
+// Returns the actuall number of pids fetched
+int list_pids(pid_t pids, int *n_proc) {
+	return 0;
+}
+
 // Reads the process info of [pid]
 int read_proc_info(pid_t pid, proc_info *pi) {
 	// path buffer
