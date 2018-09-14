@@ -1,6 +1,9 @@
-#include <stdio.h>
-#include <unistd.h>
+#include <assert.h>
 #include <dirent.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 // flags
 #define S_PID 1		// -p (specific pid)
@@ -20,12 +23,14 @@ typedef struct {
 
 // parsed process info
 typedef struct {
-	pid_t pid;
 	char state;
+	pid_t pid;
+	char *cmd;
 	unsigned long utime;
 	unsigned long stime;
 	unsigned long vmsize;
-	char *cmd;
 } proc_info;
 
 int parse_ops(int argc, char *argv[], ps_ops *options);
+
+int read_proc_info(pid_t pid, proc_info *pi);

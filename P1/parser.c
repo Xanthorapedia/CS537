@@ -1,4 +1,4 @@
-#include "cmdparser.h"
+#include "parser.h"
 
 // Parses cmd args and stores results in "options"
 // Returns 0 on success, other on false
@@ -12,13 +12,34 @@ int parse_ops(int argc, char *argv[], ps_ops *options) {
 	// 	options->flags |= PROG_STATE
 }
 
-//it's trivial
-int read_proc_info(pid_t pid, proc_info *proc_info) {
+// Reads the process info of [pid]
+int read_proc_info(pid_t pid, proc_info *pi) {
 	// path buffer
-	char buf[32];
-	snprintf(buf, sizeof(buf), "/proc/%d/stat", pid);
-	FILE* stat_file = fopen(buf, "r");
-	fscanf(stat_file, "%*d (%s) %c", &proc_info->cmd, &proc_info->state, &);
+	char path[32];
+	FILE* afile = NULL;
+
+	snprintf(path, sizeof(path), "/proc/%d/stat", pid);
+	if (!access(path, R_OK))
+		return (pi->pid = -1);
+	afile = fopen(path, "r");
+	assert(afile != NULL);
+	fscanf(afile, "%d (%s) %c", &pi->pid, &pi->cmd, &pi->state);
+	// skip unwanted info
+	for (int i = 0; i < 5; i++)
+		fscanf(afile, "%*ld %*ld");
+	fscanf(afile, "%lu %lu", &pi->utime, &pi->stime);
+	fclose(afile);
+
+	// now it's statm
+	strcat(path, "m");
+	if (!access(path, R_OK))
+		return (pi->pid = -1);
+	afile = fopen(path, "r");
+	assert(afile != NULL);
+	fscanf(afile, "%d", &pi->vmsize);
+	fclose(afile);
+
+	return 0;
 }
 
 // Retrieves an array of process info based on "options"
