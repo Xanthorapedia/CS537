@@ -19,24 +19,28 @@ int read_proc_info(pid_t pid, proc_info *pi) {
 	FILE* afile = NULL;
 
 	snprintf(path, sizeof(path), "/proc/%d/stat", pid);
-	if (!access(path, R_OK))
+	if (access(path, R_OK) != 0)
 		return (pi->pid = -1);
 	afile = fopen(path, "r");
 	assert(afile != NULL);
-	fscanf(afile, "%d (%s) %c", &pi->pid, &pi->cmd, &pi->state);
+	fscanf(afile, "%d %s %c", &pi->pid, pi->cmd, &pi->state);
+	char *c = pi->cmd;
+	while ((*c = *(c + 1)) != '\0')
+		c++;
+	*(c - 1) = '\0';
 	// skip unwanted info
 	for (int i = 0; i < 5; i++)
-		fscanf(afile, "%*ld %*ld");
+		fscanf(afile, "%*d %*d");
 	fscanf(afile, "%lu %lu", &pi->utime, &pi->stime);
 	fclose(afile);
 
 	// now it's statm
 	strcat(path, "m");
-	if (!access(path, R_OK))
+	if (access(path, R_OK) != 0)
 		return (pi->pid = -1);
 	afile = fopen(path, "r");
 	assert(afile != NULL);
-	fscanf(afile, "%d", &pi->vmsize);
+	fscanf(afile, "%lu", &pi->vmsize);
 	fclose(afile);
 
 	return 0;
