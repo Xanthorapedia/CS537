@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <dirent.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,3 +36,6 @@ typedef struct {
 int parse_ops(int argc, char *argv[], ps_ops *options);
 
 int read_proc_info(pid_t pid, proc_info *pi);
+
+int list_pids(pid_t *pids, int *n_proc);
+
