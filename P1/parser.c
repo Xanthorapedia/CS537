@@ -3,13 +3,47 @@
 // Parses cmd args and stores results in "options"
 // Returns 0 on success, other on false
 int parse_ops(int argc, char *argv[], ps_ops *options) {
-	if (!options)
+	int opt;
+	if (!options) {
 		return -1;
-	options->flags = DEFAULT_FLAGS;
-
-	// parse
-	// if ()
-	// 	options->flags |= PROG_STATE
+	}
+	options->flags = 0;
+	if (argc == 1) {
+		options->flags = DEFAULT_FLAGS;
+	}
+	while ((opt = getopt(argc, argv, "p:sUSvc")) != -1) {
+		switch (opt) {
+            case 'p':
+                options->flags = options->flags | S_PID;
+                options->pid = atoi(optarg);
+                printf("p flag success\n");
+                break;
+            case 's':
+                options->flags = options->flags | STATE;
+                printf("s flag success\n");
+                break;
+            case 'U':
+            	options->flags = options->flags | UTIME;
+            	printf("U flag success\n");
+                break;
+            case 'S':
+            	options->flags = options->flags | STIME;
+            	printf("S flag success\n");
+                break;
+            case 'v':
+            	options->flags = options->flags | MEMSZ;
+            	printf("v flag success\n");
+                break;
+            case 'c':
+            	options->flags = options->flags | CMDLN;
+            	printf("c flag success\n");
+                break;
+            default:
+                fprintf(stderr, "Usage: %s invalid argument", argv[0]);
+                exit(0);
+        }
+	}
+	return 0;
 }
 
 // Lists all pids currently in /proc
@@ -17,7 +51,37 @@ int parse_ops(int argc, char *argv[], ps_ops *options) {
 // process present
 // Else, at most "*n_proc" process infos are retrieved to "pids"
 // Returns the actuall number of pids fetched
-int list_pids(pid_t pids, int *n_proc) {
+int list_pids(pid_t *pids, int *n_proc) {
+	DIR *dir;
+	struct dirent *entry;
+	*n_proc = 0;
+	if ((dir = opendir("/proc")) == NULL) {
+		fprintf(stderr, "Usage: /proc cannot be opened");
+		return -1;
+	}
+	else {
+		errno = 0;
+		while (1) {
+			if ((entry = readdir(dir)) != NULL){
+				if (pids == NULL) {
+					n_proc++;
+				}
+				else {
+					pids + n_proc = atoi(entry->d_name);
+					n_proc++;
+				}
+			}
+			else {
+				if (errno != 0) {
+					continue;
+				}
+				else {
+					break;
+				}
+			}
+		}
+		closedir(dir);
+	}
 	return 0;
 }
 
