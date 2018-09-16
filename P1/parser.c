@@ -64,11 +64,11 @@ int list_pids(pid_t *pids, int *n_proc) {
 		while (1) {
 			if ((entry = readdir(dir)) != NULL){
 				if (pids == NULL) {
-					n_proc++;
+					*n_proc++;
 				}
 				else {
 					pids + n_proc = atoi(entry->d_name);
-					n_proc++;
+					*n_proc++;
 				}
 			}
 			else {
@@ -140,4 +140,35 @@ int parse_proc(ps_ops *options, proc_info *proc_infos[], int *n_proc) {
 // proc_infos = malloc(sizeof(proc_info*) * n_proc);
 // // 2
 // parse_proc(options, proc_infos, n_proc);
+
+
+// take flags and process information, output information
+// according to the flags. output all processes or specific
+// one will be decided in main
+int output_proc_info (ps_ops *options, proc_info *pi, int n_proc) {
+	for (int i = 0; i < n_proc; i++) {
+		// output buffer
+		// ?????????????????don't know what should be the buffer size??????????????????
+		char buffer[256];
+		// counter for sprintf
+		int c;
+		c = sprintf(buffer, "%i:", (pi + i)->pid);
+		if (options->flags & STATE) {
+			c += sprintf(buffer + c, " %c", (pi + i)->state);
+		}
+		if (options->flags & UTIME) {
+			c += sprintf(buffer + c, " utime=%lu", (pi + i)->utime);
+		}
+		if (options->flags & STIME) {
+			c += sprintf(buffer + c, " stime=%lu", (pi + i)->stime);
+		}
+		if (options->flags & MEMSZ) {
+			c += sprintf(buffer + c, " size=%lu", (pi + i)->vmsize);
+		}
+		if (options->flags & CMDLN) {
+			c += sprintf(buffer + c, " [%s]", (pi + i)->cmd);
+		}
+		printf("%s\n", buffer);
+	}
+}
 
