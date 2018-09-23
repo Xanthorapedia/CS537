@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
 
 // buffer sizes
 #define CMD_SIZE 256	// the size of process' cmd property
@@ -20,8 +19,9 @@
 #define STIME 8		// -S (system time)
 #define MEMSZ 16	// -v (virtual memory size)
 #define CMDLN 32	// -c (comand line)
-#define USRID 64	// for debugging
-#define DEFAULT_FLAGS (UTIME | CMDLN)
+#define USRID 64	// print uid (for dbg only)
+#define UONLY 128	// current user only (for dbg only)
+#define DEFAULT_FLAGS (UTIME | CMDLN | UONLY)
 
 // magic numbers
 #define STAT_SKIP_TOKEN 10
