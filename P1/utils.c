@@ -6,39 +6,78 @@ FILE *open_pid_file_safe(pid_t pid, char *fn);
 // Returns 0 on success, other on false
 int parse_ops(int argc, char *argv[], ps_ops *options) {
 	int opt;
+	char *optional_arg = "-";
 	if (!options) {
 		return -1;
 	}
 	options->flags = 0;
-	if (argc == 1) {
-		options->flags = DEFAULT_FLAGS;
-	}
-	while ((opt = getopt(argc, argv, "p:sUSvc")) != -1) {
+	options->flags = DEFAULT_FLAGS;
+	while ((opt = getopt(argc, argv, ":p:s::U::S::v::c::")) != -1) {
 		switch (opt) {
             case 'p':
                 options->flags = options->flags | S_PID;
+                if (atoi(optarg) == 0) {
+                	perror("Invalid argument for -p");
+                	exit(1);
+                }
                 options->pid = atoi(optarg);
-                printf("p flag success\n");
+//                printf("p flag success\n");
                 break;
             case 's':
-                options->flags = options->flags | STATE;
-                printf("s flag success\n");
+            	if (optarg != NULL) {
+            		if (strcmp(optarg, optional_arg) != 0) {
+                		perror("Invalid argument for -p");
+                		exit(1);
+                	}
+            	}
+            	options->flags = options->flags | STATE;
+//                printf("s flag success\n");
                 break;
             case 'U':
-            	options->flags = options->flags | UTIME;
-            	printf("U flag success\n");
+            	if (optarg != NULL) {
+            		if (strcmp(optarg, optional_arg) != 0) {
+                		perror("Invalid argument for -p");
+                		exit(1);
+                	}
+            		options->flags = options->flags & (~UTIME);
+            	}
+            	else {
+            		options->flags = options->flags | UTIME;
+            	}
+//            	printf("U flag success\n");
                 break;
             case 'S':
+            	if (optarg != NULL) {
+            		if (strcmp(optarg, optional_arg) != 0) {
+                		perror("Invalid argument for -p");
+                		exit(1);
+                	}
+            	}
             	options->flags = options->flags | STIME;
-            	printf("S flag success\n");
+//            	printf("S flag success\n");
                 break;
             case 'v':
+            	if (optarg != NULL) {
+            		if (strcmp(optarg, optional_arg) != 0) {
+                		perror("Invalid argument for -p");
+                		exit(1);
+                	}
+            	}
             	options->flags = options->flags | MEMSZ;
-            	printf("v flag success\n");
+//            	printf("v flag success\n");
                 break;
             case 'c':
-            	options->flags = options->flags | CMDLN;
-            	printf("c flag success\n");
+            	if (optarg != NULL) {
+            		if (strcmp(optarg, optional_arg) != 0) {
+                		perror("Invalid argument for -p");
+                		exit(1);
+                	}
+                	options->flags = options->flags & (~CMDLN);
+            	}
+            	else {
+            		options->flags = options->flags | CMDLN;
+//            		printf("c flag success\n");
+            	}
                 break;
             default:
                 fprintf(stderr, "Usage: %s invalid argument", argv[0]);
@@ -76,20 +115,20 @@ int list_pids(pid_t *pids, int *n_proc) {
 		else if (pids == NULL)
 			continue;
 		pids[i] = (pid_t) strtol(pid_str, NULL, 10);
-		// printf("%d ", pids[i]);
+//		printf("%d ", pids[i]);
 	}
 	closedir(proc_dir);
 	if (pids == NULL) {
 		*n_proc = i;
 		return 0;
 	}
-	return i;
+	return 0;
 }
 
 // Reads the process info of [pid]
 int read_proc_info(pid_t pid, proc_info *pi) {
 	// path buffer
-	char path[PATH_SIZE];
+//	char path[PATH_SIZE];
 	FILE* p_file = NULL;
 
 	// stat file
@@ -169,28 +208,27 @@ int read_proc_infos(proc_info *proc_infos, int *n_proc) {
 // Take flags and process information, output information
 // according to the flags. Output all processes or specific
 // one will be decided in main
-int output_proc_info (ps_ops *options, proc_info *pi, int n_proc) {
-	for (int i = 0; i < n_proc; i++) {
-		printf("%d:", (pi + i)->pid);
-		if (options->flags & STATE) {
-			printf(" %c", (pi + i)->state);
-		}
-		if (options->flags & USRID) {
-			printf(" uid=%d", (pi + i)->uid);
-		}
-		if (options->flags & UTIME) {
-			printf(" utime=%lu", (pi + i)->utime);
-		}
-		if (options->flags & STIME) {
-			printf(" stime=%lu", (pi + i)->stime);
-		}
-		if (options->flags & MEMSZ) {
-			printf(" size=%lu", (pi + i)->vmsize);
-		}
-		if (options->flags & CMDLN) {
-			printf(" [%s]", (pi + i)->cmd);
-		}
-		printf("\n");
+int output_proc_info (ps_ops *options, proc_info *pi) {
+    printf("%d:", pi->pid);
+	if (options->flags & STATE) {
+		printf(" %c", pi->state);
 	}
+	if (options->flags & USRID) {
+		printf(" uid=%d", pi->uid);
+	}
+	if (options->flags & UTIME) {
+		printf(" utime=%lu", pi->utime);
+	}
+	if (options->flags & STIME) {
+		printf(" stime=%lu", pi->stime);
+	}
+	if (options->flags & MEMSZ) {
+		printf(" size=%lu", pi->vmsize);
+	}
+	if (options->flags & CMDLN) {
+		printf(" [%s]", pi->cmd);
+	}
+	printf("\n");
+    return 0;
 }
 
