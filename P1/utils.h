@@ -52,5 +52,5 @@ int read_proc_infos(proc_info *proc_infos, int *n_proc);
 
 int list_pids(pid_t *pids, int *n_proc);
 
-int output_proc_info (ps_ops *options, proc_info *pi);
+int output_proc_info (ps_ops *options, proc_info *pi, int n_proc);
 
