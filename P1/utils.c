@@ -94,12 +94,6 @@ int read_proc_info(pid_t pid, proc_info *pi) {
 	if ((p_file = open_pid_file_safe(pid, "stat")) == NULL)
 		return (pi->pid = -1);
 	fscanf(p_file, "%d %*s %c", &pi->pid, &pi->state);
-	/*// get rid of the surrouding brackets
-	char *c = pi->cmd;
-	assert(c != NULL);
-	while ((*c = *(c + 1)) != '\0')
-		c++;
-	*(c - 1) = '\0';*/
 	// skip unwanted info
 	for (int i = 0; i < STAT_SKIP_TOKEN / 2; i++)
 		fscanf(p_file, "%*d %*d");
@@ -109,10 +103,6 @@ int read_proc_info(pid_t pid, proc_info *pi) {
 	// now it's cmdline
 	if ((p_file = open_pid_file_safe(pid, "cmdline")) == NULL)
 		return (pi->pid = -1);
-	//fseek(p_file, 0L, SEEK_END);
-	//size_t sz = ftell(p_file);
-	//rewind(p_file);
-	//printf("%lu\n", sz);
 	size_t cmd_len = fread(pi->cmd, 1,  CMD_SIZE, p_file);
 	// arguments are delimited by '\0'
 	for (char * c = pi->cmd; c < pi->cmd + cmd_len - 1; c++)
@@ -166,16 +156,6 @@ int read_proc_infos(proc_info *proc_infos, int *n_proc) {
 	free(pids);
 	return n_got;
 }
-
-
-// int n_proc;
-// proc_info **proc_infos = NULL;
-// // 1
-// parse_proc(options, NULL, n_proc);
-// proc_infos = malloc(sizeof(proc_info*) * n_proc);
-// // 2
-// parse_proc(options, proc_infos, n_proc);
-
 
 // Take flags and process information, output information
 // according to the flags. Output all processes or specific

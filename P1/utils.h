@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 // buffer sizes
-#define CMD_SIZE 256	// the size of process' cmd property
+#define CMD_SIZE 512	// the size of process' cmd property
 #define PATH_SIZE 32	// the size of /proc file path string
 #define PATH_HEAD "/proc/"
 
@@ -41,7 +41,7 @@ typedef struct {
 	unsigned long utime;
 	unsigned long stime;
 	unsigned long vmsize;
-	char cmd[CMD_SIZE];
+	char cmd[CMD_SIZE + 1];
 } proc_info;
 
 int parse_ops(int argc, char *argv[], ps_ops *options);
@@ -52,5 +52,5 @@ int read_proc_infos(proc_info *proc_infos, int *n_proc);
 
 int list_pids(pid_t *pids, int *n_proc);
 
-int output_proc_info (ps_ops *options, proc_info *pi, int n_proc);
+int output_proc_info(ps_ops *options, proc_info *pi, int n_proc);
 
