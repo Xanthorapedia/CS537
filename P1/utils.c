@@ -5,77 +5,45 @@ FILE *open_pid_file_safe(pid_t pid, char *fn);
 // Parses cmd args and stores results in "options"
 // Returns 0 on success, other on false
 int parse_ops(int argc, char *argv[], ps_ops *options) {
-	int opt;
-	char *optional_arg = "-";
-	if (!options) {
+	char opt;
+	if (options == NULL) {
 		return -1;
 	}
-	options->flags = 0;
 	options->flags = DEFAULT_FLAGS;
-	while ((opt = getopt(argc, argv, ":p:s::U::S::v::c::")) != -1) {
+	while ((opt = getopt(argc, argv, "p:sUSvcua")) != -1) {
 		switch (opt) {
 			case 'p':
 				options->flags = options->flags | S_PID;
-				if (atoi(optarg) == 0) {
-					perror("Invalid argument for -p");
-					exit(1);
+				char *parsed = optarg;
+				if ((options->pid = (int) strtol(optarg, &parsed, 10)) == 0
+						&& parsed == optarg) {
+					fprintf(stderr, "Invalid pid (-p <pid>)\n");
+					return -1;
 				}
-				options->pid = atoi(optarg);
 				break;
 			case 's':
-				if (optarg != NULL) {
-					if (strcmp(optarg, optional_arg) != 0) {
-						perror("Invalid argument for -p");
-						exit(1);
-					}
-				}
-				options->flags = options->flags | STATE;
+				options->flags |= STATE;
 				break;
 			case 'U':
-				if (optarg != NULL) {
-					if (strcmp(optarg, optional_arg) != 0) {
-						perror("Invalid argument for -p");
-						exit(1);
-					}
-					options->flags = options->flags & (~UTIME);
-				}
-				else {
-					options->flags = options->flags | UTIME;
-				}
+				options->flags &= ~UTIME;
 				break;
 			case 'S':
-				if (optarg != NULL) {
-					if (strcmp(optarg, optional_arg) != 0) {
-						perror("Invalid argument for -p");
-						exit(1);
-					}
-				}
-				options->flags = options->flags | STIME;
+				options->flags |= STIME;
 				break;
 			case 'v':
-				if (optarg != NULL) {
-					if (strcmp(optarg, optional_arg) != 0) {
-						perror("Invalid argument for -p");
-						exit(1);
-					}
-				}
-				options->flags = options->flags | MEMSZ;
+				options->flags |= MEMSZ;
 				break;
 			case 'c':
-				if (optarg != NULL) {
-					if (strcmp(optarg, optional_arg) != 0) {
-						perror("Invalid argument for -p");
-						exit(1);
-					}
-					options->flags = options->flags & (~CMDLN);
-				}
-				else {
-					options->flags = options->flags | CMDLN;
-				}
+				options->flags &= ~CMDLN;
+				break;
+			case 'u':
+				options->flags |= USRID;
+				break;
+			case 'a':
+				options->flags &= ~UONLY;
 				break;
 			default:
-				fprintf(stderr, "Usage: %s invalid argument", argv[0]);
-				exit(0);
+				return -1;
 		}
 	}
 	return 0;
@@ -115,7 +83,7 @@ int list_pids(pid_t *pids, int *n_proc) {
 		*n_proc = i;
 		return 0;
 	}
-	return 0;
+	return i;
 }
 
 // Reads the process info of [pid]
@@ -125,17 +93,20 @@ int read_proc_info(pid_t pid, proc_info *pi) {
 	// stat file
 	if ((p_file = open_pid_file_safe(pid, "stat")) == NULL)
 		return (pi->pid = -1);
-	fscanf(p_file, "%d %s %c", &pi->pid, pi->cmd, &pi->state);
-	// get rid of the surrouding brackets
-	char *c = pi->cmd;
-	assert(c != NULL);
-	while ((*c = *(c + 1)) != '\0')
-		c++;
-	*(c - 1) = '\0';
+	fscanf(p_file, "%d %*s %c", &pi->pid, &pi->state);
 	// skip unwanted info
 	for (int i = 0; i < STAT_SKIP_TOKEN / 2; i++)
 		fscanf(p_file, "%*d %*d");
 	fscanf(p_file, "%lu %lu", &pi->utime, &pi->stime);
+	fclose(p_file);
+	
+	// now it's cmdline
+	if ((p_file = open_pid_file_safe(pid, "cmdline")) == NULL)
+		return (pi->pid = -1);
+	size_t cmd_len = fread(pi->cmd, 1,  CMD_SIZE, p_file);
+	// arguments are delimited by '\0'
+	for (char * c = pi->cmd; c < pi->cmd + cmd_len - 1; c++)
+		*c = *c == '\0' ? ' ' : *c;
 	fclose(p_file);
 
 	// now it's statm
@@ -186,54 +157,47 @@ int read_proc_infos(proc_info *proc_infos, int *n_proc) {
 	return n_got;
 }
 
-
-// int n_proc;
-// proc_info **proc_infos = NULL;
-// // 1
-// parse_proc(options, NULL, n_proc);
-// proc_infos = malloc(sizeof(proc_info*) * n_proc);
-// // 2
-// parse_proc(options, proc_infos, n_proc);
-
-
 // Take flags and process information, output information
 // according to the flags. Output all processes or specific
 // one will be decided in main
-int output_proc_info (ps_ops *options, proc_info *pi, int n_proc) {
+int output_proc_info (ps_ops *options, proc_info *pis, int n_proc) {
 	uid_t uid = getuid();
-	for (int i = 0; i < n_proc, i++) {
+	int pid_404 = options->flags & S_PID;	// pid specified but not found
+	for (proc_info *pi = pis; pi < pis + n_proc; pi++) {
 		// if -p is set but this process is not the process we want, continue
-		if (options.flags & S_PID) {
-			if (pi[i].pid != options.pid) {
+		if (options->flags & S_PID) {
+			if (pi->pid != options->pid) {
 				continue;
 			}
+			pid_404 = 0;
 		}
 		// if -p is not set, and the process is not my process, continue
-		else {
-			if (uid != pi[i].uid) {
-				continue;
-			}
+		else if (options->flags & UONLY && uid != pi->uid) {
+			continue;
 		}
 		printf("%d:", pi->pid);
 		if (options->flags & STATE) {
-			printf(" %c", pi->state);
+			printf("\t%c", pi->state);
 		}
 		if (options->flags & USRID) {
-			printf(" uid=%d", pi->uid);
+			printf("\tuid=%d", pi->uid);
 		}
 		if (options->flags & UTIME) {
-			printf(" utime=%lu", pi->utime);
+			printf("\tutime=%lu", pi->utime);
 		}
 		if (options->flags & STIME) {
-			printf(" stime=%lu", pi->stime);
+			printf("\tstime=%lu", pi->stime);
 		}
 		if (options->flags & MEMSZ) {
-			printf(" size=%lu", pi->vmsize);
+			printf("\tsize=%lu", pi->vmsize);
 		}
 		if (options->flags & CMDLN) {
-			printf(" [%s]", pi->cmd);
+			printf("\t[%s]", pi->cmd);
 		}
 		printf("\n");
+	}
+	if (pid_404) {
+		printf("Specified pid %d is not present.\n", options->pid);
 	}
 	return 0;
 }

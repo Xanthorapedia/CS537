@@ -6,10 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
 
 // buffer sizes
-#define CMD_SIZE 256	// the size of process' cmd property
+#define CMD_SIZE 512	// the size of process' cmd property
 #define PATH_SIZE 32	// the size of /proc file path string
 #define PATH_HEAD "/proc/"
 
@@ -20,8 +19,9 @@
 #define STIME 8		// -S (system time)
 #define MEMSZ 16	// -v (virtual memory size)
 #define CMDLN 32	// -c (comand line)
-#define USRID 64	// for debugging
-#define DEFAULT_FLAGS (UTIME | CMDLN)
+#define USRID 64	// print uid (for dbg only)
+#define UONLY 128	// current user only (for dbg only)
+#define DEFAULT_FLAGS (UTIME | CMDLN | UONLY)
 
 // magic numbers
 #define STAT_SKIP_TOKEN 10
@@ -41,7 +41,7 @@ typedef struct {
 	unsigned long utime;
 	unsigned long stime;
 	unsigned long vmsize;
-	char cmd[CMD_SIZE];
+	char cmd[CMD_SIZE + 1];
 } proc_info;
 
 int parse_ops(int argc, char *argv[], ps_ops *options);
@@ -52,5 +52,5 @@ int read_proc_infos(proc_info *proc_infos, int *n_proc);
 
 int list_pids(pid_t *pids, int *n_proc);
 
-int output_proc_info (ps_ops *options, proc_info *pi, int n_proc);
+int output_proc_info(ps_ops *options, proc_info *pi, int n_proc);
 
