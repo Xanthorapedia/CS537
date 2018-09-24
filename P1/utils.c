@@ -1,3 +1,6 @@
+/* author1: Dasong Gao
+ * author2: Haozhe Luo
+ */
 #include "utils.h"
 
 FILE *open_pid_file_safe(pid_t pid, char *fn);
