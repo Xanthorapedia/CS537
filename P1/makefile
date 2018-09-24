@@ -1,3 +1,6 @@
+/* author1: Dasong Gao
+ * author2: Haozhe Luo
+ */
 CC = gcc
 WARNING_FLAGS = -Wall -Wextra
 EXE = 537ps
