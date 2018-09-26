@@ -5,6 +5,12 @@
 
 FILE *open_pid_file_safe(pid_t pid, char *fn);
 
+#ifdef MORE_FEATURES
+#define OPTSTRING "p:s::U::S::v::c::u::o::"
+#else
+#define OPTSTRING "p:s::U::S::v::c::"
+#endif
+
 // Parses cmd args and stores results in "options"
 // Returns 0 on success, other on false
 int parse_ops(int argc, char *argv[], ps_ops *options) {
@@ -13,41 +19,43 @@ int parse_ops(int argc, char *argv[], ps_ops *options) {
 		return -1;
 	}
 	options->flags = DEFAULT_FLAGS;
-	while ((opt = getopt(argc, argv, "p:sUSvcua")) != -1) {
+	while ((opt = getopt(argc, argv, OPTSTRING)) != -1) {
+		int flag = 0;
 		switch (opt) {
-			case 'p':
-				options->flags = options->flags | S_PID;
-				char *parsed = optarg;
-				if ((options->pid = (int) strtol(optarg, &parsed, 10)) == 0
-						&& parsed == optarg) {
-					fprintf(stderr, "Invalid pid (-p <pid>)\n");
-					return -1;
-				}
-				break;
-			case 's':
-				options->flags |= STATE;
-				break;
-			case 'U':
-				options->flags &= ~UTIME;
-				break;
-			case 'S':
-				options->flags |= STIME;
-				break;
-			case 'v':
-				options->flags |= MEMSZ;
-				break;
-			case 'c':
-				options->flags &= ~CMDLN;
-				break;
-			case 'u':
-				options->flags |= USRID;
-				break;
-			case 'a':
-				options->flags &= ~UONLY;
-				break;
-			default:
-				return -1;
+			// setable flags
+			case 'p': flag = S_PID; break;
+			case 's': flag = STATE; break;
+			case 'S': flag = STIME; break;
+			case 'v': flag = MEMSZ; break;
+			case 'u': flag = USRID; break;
+			// clearable flags
+			case 'U': flag = UTIME; break;
+			case 'c': flag = CMDLN; break;
+			case 'o': flag = UONLY; break;
+			// automatically prints "Unrecognized option"
+			default: return -1;
 		}
+		// the default action is to set the flag, unless overriden by '-'
+		int operation = OPSETF;
+
+		// if set "-p" flag, take the argument as a number
+		if (flag == S_PID) {
+			char *parsed = optarg;
+			if ((options->pid = (int) strtol(optarg, &parsed, 10)) == 0
+					&& parsed == optarg) {
+				fprintf(stderr, "Invalid pid (-p <pid>)\n");
+				return -1;
+			}
+		}
+		// if '-' fllows the flag, turn off the display option
+		else if (optarg != 0 && strcmp(optarg, "-") == 0)
+			operation = OPCLRF;
+		// complain about arbitrary arguments
+		else if (optarg != NULL) {
+			fprintf(stderr, "Unrecognized argument \"%s\" for option \'%c\'\n", optarg, opt);
+			return -1;
+		}
+		CLETF(options->flags, flag, operation);
 	}
 	return 0;
 }
@@ -140,7 +148,7 @@ FILE *open_pid_file_safe(pid_t pid, char *fn) {
 	return p_file;
 }
 
-// Retrieves an array of process info based on "options"
+/*// Retrieves an array of process info based on "options"
 // If "proc_infos" is NULL, the function only updates "n_proc" to the number of
 // process present
 // Else, at most "*n_proc" process infos are retrieved to "proc_infos"
@@ -158,12 +166,55 @@ int read_proc_infos(proc_info *proc_infos, int *n_proc) {
 		read_proc_info(pids[i], &proc_infos[i]);
 	free(pids);
 	return n_got;
+}*/
+
+int print_proc_infos(ps_ops *options, pid_t *pids, int n_proc) {
+	proc_info pi;
+	int pid_404 = 1;
+	for (int i = 0; i < n_proc; i++) {
+		if (read_proc_info(pids[i], &pi) == -1)
+			return -1;
+		pid_404 = print_proc_info(options, &pi);
+	}
+	if (pid_404)
+		printf("Specified pid %d is not present.\n", options->pid);
+	return 0;
+}
+// Take flags and process information, output information
+// according to the flags. Output all processes or specific
+// one will be decided in main
+int print_proc_info(ps_ops *options, proc_info *pi) {
+	// if not the process we want, return
+	if ((TSTF(options->flags, S_PID) && pi->pid != options->pid) ||
+		(TSTF(options->flags, UONLY) && pi->uid != getuid()))
+		return 1;
+	printf("%d:", pi->pid);
+	if (TSTF(options->flags, STATE)) {
+		printf("\t%c", pi->state);
+	}
+	if (TSTF(options->flags, USRID)) {
+		printf("\tuid=%d", pi->uid);
+	}
+	if (TSTF(options->flags, UTIME)) {
+		printf("\tutime=%lu", pi->utime);
+	}
+	if (TSTF(options->flags, STIME)) {
+		printf("\tstime=%lu", pi->stime);
+	}
+	if (TSTF(options->flags, MEMSZ)) {
+		printf("\tsize=%lu", pi->vmsize);
+	}
+	if (TSTF(options->flags, CMDLN)) {
+		printf("\t[%s]", pi->cmd);
+	}
+	printf("\n");
+	return 0;
 }
 
 // Take flags and process information, output information
 // according to the flags. Output all processes or specific
 // one will be decided in main
-int output_proc_info (ps_ops *options, proc_info *pis, int n_proc) {
+/*int output_proc_info (ps_ops *options, proc_info *pis, int n_proc) {
 	uid_t uid = getuid();
 	int pid_404 = options->flags & S_PID;	// pid specified but not found
 	for (proc_info *pi = pis; pi < pis + n_proc; pi++) {
@@ -203,5 +254,5 @@ int output_proc_info (ps_ops *options, proc_info *pis, int n_proc) {
 		printf("Specified pid %d is not present.\n", options->pid);
 	}
 	return 0;
-}
+}*/
 
