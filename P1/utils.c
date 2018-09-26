@@ -174,7 +174,7 @@ int print_proc_infos(ps_ops *options, pid_t *pids, int n_proc) {
 	for (int i = 0; i < n_proc; i++) {
 		if (read_proc_info(pids[i], &pi) == -1)
 			return -1;
-		pid_404 = print_proc_info(options, &pi);
+		pid_404 &= (print_proc_info(options, &pi) != 0);
 	}
 	if (pid_404)
 		printf("Specified pid %d is not present.\n", options->pid);
@@ -184,10 +184,14 @@ int print_proc_infos(ps_ops *options, pid_t *pids, int n_proc) {
 // according to the flags. Output all processes or specific
 // one will be decided in main
 int print_proc_info(ps_ops *options, proc_info *pi) {
-	// if not the process we want, return
-	if ((TSTF(options->flags, S_PID) && pi->pid != options->pid) ||
-		(TSTF(options->flags, UONLY) && pi->uid != getuid()))
-		return 1;
+	// if not the specified pid, return
+	if (TSTF(options->flags, S_PID)) {
+		if (pi->pid != options->pid)
+			return 1;
+	}
+	// if pid not specified, check uid
+	else if ((TSTF(options->flags, UONLY) && pi->uid != getuid()))
+		return 2;
 	printf("%d:", pi->pid);
 	if (TSTF(options->flags, STATE)) {
 		printf("\t%c", pi->state);
