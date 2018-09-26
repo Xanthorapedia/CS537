@@ -22,14 +22,5 @@ int main(int argc, char *argv[]) {
 	print_proc_infos(&options, pids, n_proc);
 	free(pids);
 	return 0;
-	/*read_proc_infos(NULL, &n_proc);
-	if ((pis = calloc(n_proc, sizeof(proc_info))) == NULL) {
-		fprintf(stderr, "calloc failed");
-		exit(-1);
-	}
-	read_proc_infos(pis, &n_proc);
-	output_proc_info(&options, pis, n_proc);
-	free(pis);
-	return 0;*/
 }
 

@@ -53,7 +53,8 @@ typedef struct {
 	unsigned long utime;
 	unsigned long stime;
 	unsigned long vmsize;
-	char cmd[CMD_SIZE + 1];
+	//char cmd[CMD_SIZE + 1];
+	char *cmd;
 } proc_info;
 
 int parse_ops(int argc, char *argv[], ps_ops *options);

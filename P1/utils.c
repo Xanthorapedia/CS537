@@ -36,14 +36,14 @@ int parse_ops(int argc, char *argv[], ps_ops *options) {
 			// automatically prints "Unrecognized option"
 			default: return -1;
 		}
-        if (set_flag == (set_flag | flag)) {
-            fprintf(stderr, "duplicate flag\n");
-            return -1;
-        }
-        set_flag = set_flag | flag;
+		// check for already changed flags
+		if (TSTF(set_flag, flag)) {
+			fprintf(stderr, "Duplicate flag: -%c\n", opt);
+			return -1;
+		}
+		SETF(set_flag, flag);
 		// the default action is to set the flag, unless overriden by '-'
 		int operation = OPSETF;
-
 		// if set "-p" flag, take the argument as a number
 		if (flag == S_PID) {
 			char *parsed = optarg;
@@ -106,7 +106,7 @@ int list_pids(pid_t *pids, int *n_proc) {
 // Reads the process info of [pid]
 int read_proc_info(pid_t pid, proc_info *pi) {
 	FILE* p_file = NULL;
-
+	char cmd_buf[CMD_SIZE];
 	// stat file
 	if ((p_file = open_pid_file_safe(pid, "stat")) == NULL)
 		return (pi->pid = -1);
@@ -120,7 +120,14 @@ int read_proc_info(pid_t pid, proc_info *pi) {
 	// now it's cmdline
 	if ((p_file = open_pid_file_safe(pid, "cmdline")) == NULL)
 		return (pi->pid = -1);
-	size_t cmd_len = fread(pi->cmd, 1,  CMD_SIZE, p_file);
+	// detect file size
+	size_t cmd_len = 0;
+	while (!feof(p_file))
+		cmd_len += fread(cmd_buf, 1, CMD_SIZE, p_file);
+	rewind(p_file);
+	//cmd_len = CMD_SIZE;
+	pi->cmd = calloc(cmd_len, sizeof(char));
+	cmd_len = fread(pi->cmd, 1,  cmd_len, p_file);
 	// arguments are delimited by '\0'
 	for (char * c = pi->cmd; c < pi->cmd + cmd_len - 1; c++)
 		*c = *c == '\0' ? ' ' : *c;
@@ -154,26 +161,8 @@ FILE *open_pid_file_safe(pid_t pid, char *fn) {
 	return p_file;
 }
 
-/*// Retrieves an array of process info based on "options"
-// If "proc_infos" is NULL, the function only updates "n_proc" to the number of
-// process present
-// Else, at most "*n_proc" process infos are retrieved to "proc_infos"
-// Returns the actuall number of process information fetched
-int read_proc_infos(proc_info *proc_infos, int *n_proc) {
-	if (proc_infos == NULL) {
-		list_pids(NULL, n_proc);
-		return 0;
-	}
-
-	pid_t *pids = malloc(*n_proc * sizeof(pid_t));
-	int n_got = list_pids(pids, n_proc);
-
-	for (int i = 0; i < n_got; i++)
-		read_proc_info(pids[i], &proc_infos[i]);
-	free(pids);
-	return n_got;
-}*/
-
+// Prints the process info of the processes listed in "pids". 
+// Output content is specified by "options".
 int print_proc_infos(ps_ops *options, pid_t *pids, int n_proc) {
 	proc_info pi;
 	int pid_404 = 1;
@@ -181,14 +170,15 @@ int print_proc_infos(ps_ops *options, pid_t *pids, int n_proc) {
 		if (read_proc_info(pids[i], &pi) == -1)
 			return -1;
 		pid_404 &= (print_proc_info(options, &pi) != 0);
+		free(pi.cmd);
 	}
 	if (pid_404)
 		printf("Specified pid %d is not present.\n", options->pid);
 	return 0;
 }
+
 // Take flags and process information, output information
-// according to the flags. Output all processes or specific
-// one will be decided in main
+// according to the flags.
 int print_proc_info(ps_ops *options, proc_info *pi) {
 	// if not the specified pid, return
 	if (TSTF(options->flags, S_PID)) {
@@ -200,69 +190,24 @@ int print_proc_info(ps_ops *options, proc_info *pi) {
 		return 2;
 	printf("%d:", pi->pid);
 	if (TSTF(options->flags, STATE)) {
-		printf("\t%c", pi->state);
+		printf(" %c", pi->state);
 	}
 	if (TSTF(options->flags, USRID)) {
-		printf("\tuid=%d", pi->uid);
+		printf(" uid=%d", pi->uid);
 	}
 	if (TSTF(options->flags, UTIME)) {
-		printf("\tutime=%lu", pi->utime);
+		printf(" utime=%lu", pi->utime);
 	}
 	if (TSTF(options->flags, STIME)) {
-		printf("\tstime=%lu", pi->stime);
+		printf(" stime=%lu", pi->stime);
 	}
 	if (TSTF(options->flags, MEMSZ)) {
-		printf("\tsize=%lu", pi->vmsize);
+		printf(" vmemory=%lu", pi->vmsize);
 	}
 	if (TSTF(options->flags, CMDLN)) {
-		printf("\t[%s]", pi->cmd);
+		printf(" [%s]", pi->cmd);
 	}
 	printf("\n");
 	return 0;
 }
-
-// Take flags and process information, output information
-// according to the flags. Output all processes or specific
-// one will be decided in main
-/*int output_proc_info (ps_ops *options, proc_info *pis, int n_proc) {
-	uid_t uid = getuid();
-	int pid_404 = options->flags & S_PID;	// pid specified but not found
-	for (proc_info *pi = pis; pi < pis + n_proc; pi++) {
-		// if -p is set but this process is not the process we want, continue
-		if (options->flags & S_PID) {
-			if (pi->pid != options->pid) {
-				continue;
-			}
-			pid_404 = 0;
-		}
-		// if -p is not set, and the process is not my process, continue
-		else if (options->flags & UONLY && uid != pi->uid) {
-			continue;
-		}
-		printf("%d:", pi->pid);
-		if (options->flags & STATE) {
-			printf("\t%c", pi->state);
-		}
-		if (options->flags & USRID) {
-			printf("\tuid=%d", pi->uid);
-		}
-		if (options->flags & UTIME) {
-			printf("\tutime=%lu", pi->utime);
-		}
-		if (options->flags & STIME) {
-			printf("\tstime=%lu", pi->stime);
-		}
-		if (options->flags & MEMSZ) {
-			printf("\tsize=%lu", pi->vmsize);
-		}
-		if (options->flags & CMDLN) {
-			printf("\t[%s]", pi->cmd);
-		}
-		printf("\n");
-	}
-	if (pid_404) {
-		printf("Specified pid %d is not present.\n", options->pid);
-	}
-	return 0;
-}*/
 
