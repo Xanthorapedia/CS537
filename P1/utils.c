@@ -37,7 +37,7 @@ int parse_ops(int argc, char *argv[], ps_ops *options) {
 			default: return -1;
 		}
 		// check for already changed flags
-		if (TSTF(set_flag, flag)) {
+		if (0 && TSTF(set_flag, flag)) {
 			fprintf(stderr, "Duplicate flag: -%c\n", opt);
 			return -1;
 		}
@@ -62,6 +62,13 @@ int parse_ops(int argc, char *argv[], ps_ops *options) {
 			return -1;
 		}
 		CLETF(options->flags, flag, operation);
+	}
+	if (optind < argc) {
+		fprintf(stderr, "Error: %d argument(s) unused:", argc - optind);
+		while (optind < argc)
+			fprintf(stderr, " %s", argv[optind++]);
+		fprintf(stderr, "\n");
+		return -1;
 	}
 	return 0;
 }

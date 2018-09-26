@@ -53,7 +53,6 @@ typedef struct {
 	unsigned long utime;
 	unsigned long stime;
 	unsigned long vmsize;
-	//char cmd[CMD_SIZE + 1];
 	char *cmd;
 } proc_info;
 
@@ -61,10 +60,9 @@ int parse_ops(int argc, char *argv[], ps_ops *options);
 
 int read_proc_info(pid_t pid, proc_info *pi);
 
-//int read_proc_infos(proc_info *proc_infos, int *n_proc);
-
 int list_pids(pid_t *pids, int *n_proc);
+
 int print_proc_info(ps_ops *options, proc_info *pi);
+
 int print_proc_infos(ps_ops *options, pid_t *pids, int n_proc);
-//int output_proc_info(ps_ops *options, proc_info *pi, int n_proc);
 
