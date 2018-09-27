@@ -136,8 +136,11 @@ int read_proc_info(pid_t pid, proc_info *pi) {
 	pi->cmd = calloc(cmd_len, sizeof(char));
 	cmd_len = fread(pi->cmd, 1,  cmd_len, p_file);
 	// arguments are delimited by '\0'
-	for (char * c = pi->cmd; c < pi->cmd + cmd_len - 1; c++)
+	// there might be a bunch of them at the end
+	for (char *c = pi->cmd; c < pi->cmd + cmd_len - 1; c++)
 		*c = *c == '\0' ? ' ' : *c;
+	for (char *c = pi->cmd + cmd_len - 2; isspace(*c); c--)
+		*c = '\0';
 	fclose(p_file);
 
 	// now it's statm

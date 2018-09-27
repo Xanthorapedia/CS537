@@ -2,6 +2,7 @@
  * author2: Haozhe Luo
  */
 #include <assert.h>
+#include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
 #include <limits.h>
