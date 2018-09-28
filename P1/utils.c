@@ -47,8 +47,9 @@ int parse_ops(int argc, char *argv[], ps_ops *options) {
 		// if set "-p" flag, take the argument as a number
 		if (flag == S_PID) {
 			char *parsed = optarg;
-			if ((options->pid = (int) strtol(optarg, &parsed, 10)) == 0
-					&& parsed == optarg) {
+			if (optarg == NULL
+					|| ((options->pid = (int) strtol(optarg, &parsed, 10)) == 0
+					&& parsed == optarg)) {
 				fprintf(stderr, "Invalid pid (-p <pid>)\n");
 				return -1;
 			}
@@ -163,7 +164,7 @@ int read_proc_info(pid_t pid, proc_info *pi) {
 FILE *open_pid_file_safe(pid_t pid, char *fn) {
 	char path[PATH_SIZE];
 	snprintf(path, sizeof(path), PATH_HEAD"/%d/", pid);
-	strncat(path, fn, sizeof(path) - strlen(path));
+	strncat(path, fn, sizeof(path) - strlen(path) - 1);
 	if (access(path, R_OK) != 0)
 		return NULL;
 	FILE *p_file = fopen(path, "r");
