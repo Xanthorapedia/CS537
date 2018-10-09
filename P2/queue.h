@@ -1,14 +1,22 @@
+#include <assert.h>
 #include <ctype.h>
+#include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct {
-	// TODO add more necessary parts
-
 	// stats
+	char **element;
 	int enqueueCount;
 	int dequeueCount;
 	int enqueueBlockCount;
 	int dequeueBlockCount;
+	int first;
+	int last;
+	int size;
+	pthread_mutex_t q_lock;
+	pthread_cond_t q_full;
+	pthread_cond_t q_empty;
 } Queue;
 
 // Dynamically allocate a new Queue structure and initialize it with an array
@@ -23,7 +31,7 @@ void EnqueueString(Queue *q, char *string);
 // Removes a pointer to a string from the beginning of queue q. If the queue is
 // empty, then this function blocks until there is a string placed into the
 // queue. Returns the pointer that was removed from the queue.
-char * DequeueString(Queue *q);
+char *DequeueString(Queue *q);
 
 // Prints the statistics for this queue to stderr (Details 8).
 void PrintQueueStats(Queue *q);
