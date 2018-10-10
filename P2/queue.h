@@ -24,6 +24,8 @@ typedef struct {
 // structure.
 Queue *CreateStringQueue(int size);
 
+// Deletes the queue created by CreateStringQueue() by freeing its internal
+// date structures. Behavior undefined if the queue is destroyed twice.
 void DestroyStringQueue(Queue *q);
 
 // Places the pointer to the string at the end of queue q. If the queue is full,

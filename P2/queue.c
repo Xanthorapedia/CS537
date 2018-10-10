@@ -10,7 +10,7 @@ Queue *CreateStringQueue(int size) {
 	}
 	if((q->element = calloc(size, sizeof(char*))) == NULL) {
 		fprintf(stderr, "Cannot calloc for element\n");
-        free(q);
+		free(q);
 		return NULL;
 	}
 	q->enqueueCount = 0;
@@ -20,8 +20,8 @@ Queue *CreateStringQueue(int size) {
 	q->first = 0;
 	q->last = 0;
 	q->size = size;
-    Pthread(cond_init,  &q->q_full,  NULL);
-    Pthread(cond_init,  &q->q_empty, NULL);
+	Pthread(cond_init,  &q->q_full,  NULL);
+	Pthread(cond_init,  &q->q_empty, NULL);
 	Pthread(mutex_init, &q->q_lock,  NULL);
 	return q;
 }
