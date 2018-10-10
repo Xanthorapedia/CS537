@@ -24,6 +24,8 @@ typedef struct {
 // structure.
 Queue *CreateStringQueue(int size);
 
+void DestroyStringQueue(Queue *q);
+
 // Places the pointer to the string at the end of queue q. If the queue is full,
 // then this function blocks until there is space available.
 void EnqueueString(Queue *q, char *string);
