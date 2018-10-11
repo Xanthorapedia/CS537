@@ -1,19 +1,22 @@
-#include <assert.h>
-#include <ctype.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "stdinclude.h"
 
+#pragma once
+
+// A concurrent queue of fixed size
 typedef struct {
-	// stats
+	// metadata
+	int first;
+	int last;
+	int size;
 	char **element;
+
+	// stats
 	int enqueueCount;
 	int dequeueCount;
 	int enqueueBlockCount;
 	int dequeueBlockCount;
-	int first;
-	int last;
-	int size;
+
+	// concurrent instrumentation
 	pthread_mutex_t q_lock;
 	pthread_cond_t q_full;
 	pthread_cond_t q_empty;

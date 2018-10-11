@@ -1,7 +1,5 @@
 #include "queue.h"
 
-#define Pthread(what,...) assert(pthread_##what(__VA_ARGS__) == 0)
-
 Queue *CreateStringQueue(int size) {
 	Queue *q;
 	if((q = calloc(1, sizeof(Queue))) == NULL) {
@@ -47,24 +45,25 @@ void EnqueueString(Queue *q, char *string) {
 	}
 	(q->element)[q->last] = string;
 	q->last = (q->last + 1) % q->size;
-	q->enqueueCount++;
+	if (string != NULL)
+		q->enqueueCount++;
 	Pthread(cond_signal,  &q->q_empty);
 	Pthread(mutex_unlock, &q->q_lock);
 }
 
 char *DequeueString(Queue *q) {
-	char *str;
 	Pthread(mutex_lock, &q->q_lock);
 	while(q->first == q->last) {
-		q->enqueueBlockCount++;
+		q->dequeueBlockCount++;
 		Pthread(cond_wait, &q->q_empty, &q->q_lock);
 	}
-	str = (q->element)[q->first];
+	char *string = (q->element)[q->first];
 	q->first = (q->first + 1) % q->size;
-	q->dequeueCount++;
+	if (string != NULL)
+		q->dequeueCount++;
 	Pthread(cond_signal,  &q->q_full);
 	Pthread(mutex_unlock, &q->q_lock);
-	return str;
+	return string;
 }
 
 void PrintQueueStats(Queue *q){

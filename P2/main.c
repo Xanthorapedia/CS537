@@ -1,8 +1,6 @@
-#include <pthread.h>
 #include "queue.h"
 #include "worker.h"
 
-#define Pthread(what,...) assert(pthread_##what(__VA_ARGS__) == 0)
 // TODO pthread_create with attr?
 // TODO pthread_join retval?
 // TODO blockcount -1
@@ -30,10 +28,16 @@ int main(int argc, char *argv[]) {
 		Pthread(join, worker[i], NULL);
 
 	// print stat to stderr
+	fprintf(stderr, "********Queue Stats********\n");
+	char *qname[] = { "Reader", "Munch1", "Munch2", "Writer" };
 	for (int i = 0; i < 3; i++) {
+		fprintf(stderr, "Pipe %d (%s -> %s):\n", i, qname[i], qname[i + 1]);
 		PrintQueueStats(q[i + 1]);
+		if(i < 2)
+			fprintf(stderr, "\n");
 		DestroyStringQueue(q[i + 1]);
 	}
+	fprintf(stderr, "***************************\n");
 	return 0;
 }
 
