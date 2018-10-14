@@ -1,16 +1,26 @@
+#include "stdinclude.h"
 #include "queue.h"
 #include "worker.h"
 
+#define QUEUESIZE 10
+#define QUEUECOUNT 3
+#define THREADCOUNT 4
+
+// thread runnables and their names
+void *(*const worker_run[])(void *) =
+	{ reader_run, munch1_run, munch2_run, writer_run };
+const char *threadname[] =
+	{ "Reader", "Munch1", "Munch2", "Writer" };
+
 // TODO pthread_create with attr?
 // TODO pthread_join retval?
-// TODO blockcount -1
 
 int main(int argc, char *argv[]) {
 	(void)(argc), (void)(argv);
-	// initialize queues (Queue0 is the dummy input for reade)
-	Queue *q[4];
-	for (int i = 0; i < 3; i++) {
-		q[i + 1] = CreateStringQueue(10);
+	// initialize queues (q[0] is the dummy input for reader)
+	Queue *q[QUEUECOUNT + 1];
+	for (int i = 0; i < QUEUECOUNT; i++) {
+		q[i + 1] = CreateStringQueue(QUEUESIZE);
 		if (q[i + 1] == NULL) {
 			for (i = i -1; i >= 0; i--)
 				DestroyStringQueue(q[i + 1]);
@@ -20,20 +30,18 @@ int main(int argc, char *argv[]) {
 	}
 
 	// run thread and wait for completion
-	pthread_t worker[4];
-	void *(*worker_run[])(void *) = { reader_run, munch1_run, munch2_run, writer_run };
-	for (int i = 0; i < 4; i++)
+	pthread_t worker[THREADCOUNT];
+	for (int i = 0; i < THREADCOUNT; i++)
 		Pthread(create, &worker[i], NULL, worker_run[i], &q[i]);
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < THREADCOUNT; i++)
 		Pthread(join, worker[i], NULL);
 
 	// print stat to stderr
 	fprintf(stderr, "********Queue Stats********\n");
-	char *qname[] = { "Reader", "Munch1", "Munch2", "Writer" };
-	for (int i = 0; i < 3; i++) {
-		fprintf(stderr, "Pipe %d (%s -> %s):\n", i, qname[i], qname[i + 1]);
+	for (int i = 0; i < QUEUECOUNT; i++) {
+		fprintf(stderr, "Pipe %d (%s -> %s):\n", i, threadname[i], threadname[i + 1]);
 		PrintQueueStats(q[i + 1]);
-		if(i < 2)
+		if(i < QUEUECOUNT - 2)
 			fprintf(stderr, "\n");
 		DestroyStringQueue(q[i + 1]);
 	}

@@ -13,14 +13,13 @@ typedef void (*dispatch_func)(Queue *, char *);
 // used to convert letters to uppercase
 #define UPPER_BIT 32
 #define MUNCH2_C '*'
+#define EOFMSG \
+	"=================================================\n"\
+	"EOF reached, number of string(s) processed: %d\n"\
+	"=================================================\n"
+
 
 // TODO probably pthread_exit(???)
-
-// init control for initializing the thread once
-static pthread_once_t init_once = PTHREAD_ONCE_INIT;
-
-// key for storing thread specific data
-static pthread_key_t tsd_key;
 
 // a template worker function
 inline static void gen_worker_run(Queue**, fetch_func, process_func, dispatch_func);
@@ -36,12 +35,6 @@ inline static char *replacew(char *line);
 
 // capitalize all characters
 inline static char *capitalize(char *line);
-
-// initializes the thread-specific key for a thread
-inline static void init_thread_specific();
-
-// cleans up the thread-specific key
-inline static void destroy_thread_specific_key(void *key);
 
 // print line before termination
 // print number of string processed after
@@ -64,10 +57,6 @@ void *munch2_run(void *qs) {
 }
 
 void *writer_run(void *qs) {
-	// initialize number of processed string to 0
-	// and have it automatically freed afterward
-	Pthread(once, &init_once, init_thread_specific);
-	Pthread(setspecific, tsd_key, calloc(1, sizeof(int)));
 	gen_worker_run(qs, DequeueString, NULL, display);
 	return NULL;
 }
@@ -117,23 +106,14 @@ inline static char *capitalize(char *line) {
 
 inline static void display(Queue* q, char *line) {
 	(void) q;
-	// fetch previously stored value
-	int *nprocessed = pthread_getspecific(tsd_key);
+	// this value is stored in the thread-local space
+	static __thread int nprocessed = 0;
 	if (line) {
 		fprintf(stdout, "%s\n", line);
 		free(line);
-		(*nprocessed)++;
+		nprocessed++;
 	}
 	else
-		fprintf(stdout, "EOF reached, number of string(s) processed: %d\n\n", *nprocessed);
-}
-
-inline static void init_thread_specific() {
-	Pthread(key_create, &tsd_key, destroy_thread_specific_key);
-}
-
-inline static void destroy_thread_specific_key(void *key) {
-	free(key);
-	Pthread(key_delete, tsd_key);
+		fprintf(stdout, EOFMSG, nprocessed);
 }
 
