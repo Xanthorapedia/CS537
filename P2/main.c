@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 	for (int i = 0; i < QUEUECOUNT; i++) {
 		fprintf(stderr, "Pipe %d (%s -> %s):\n", i, threadname[i], threadname[i + 1]);
 		PrintQueueStats(q[i + 1]);
-		if(i < QUEUECOUNT - 2)
+		if(i < QUEUECOUNT - 1)
 			fprintf(stderr, "\n");
 		DestroyStringQueue(q[i + 1]);
 	}
