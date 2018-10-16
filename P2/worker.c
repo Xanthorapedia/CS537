@@ -27,9 +27,6 @@ inline static void gen_worker_run(Queue**, fetch_func, process_func, dispatch_fu
 // insteade of fetching from queue, get a line from stdin
 inline static char *fetchline(Queue *q);
 
-// replace the '\n' at EOL with '\0'
-inline static char *replacenewline(char *line);
-
 // replace all whitespaces with MUNCH2_C
 inline static char *replacew(char *line);
 
@@ -42,7 +39,7 @@ inline static void display(Queue* q, char *line);
 
 // thread workers
 void *reader_run(void *qs) {
-	gen_worker_run(qs, fetchline, replacenewline, EnqueueString);
+	gen_worker_run(qs, fetchline, NULL, EnqueueString);
 	return NULL;
 }
 
@@ -85,16 +82,9 @@ inline static char *fetchline(Queue *q) {
 	return (getline(&line, &len, stdin) == -1) ? free(line), NULL : line;
 }
 
-inline static char *replacenewline(char *line) {
-	int len = strlen(line);
-	if (line[len - 1] == '\n')
-		line[len - 1] = '\0';
-	return line;
-}
-
 inline static char *replacew(char *line) {
 	for (char *c = line; *c != '\0'; c++)
-		*c = isspace(*c) ? MUNCH2_C : *c;
+		*c = (*c != '\t' && *c != '\n' && isspace(*c)) ? MUNCH2_C : *c;
 	return line;
 }
 
@@ -109,7 +99,7 @@ inline static void display(Queue* q, char *line) {
 	// this value is stored in the thread-local space
 	static __thread int nprocessed = 0;
 	if (line) {
-		fprintf(stdout, "%s\n", line);
+		fprintf(stdout, "%s", line);
 		free(line);
 		nprocessed++;
 	}
