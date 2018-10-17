@@ -87,12 +87,12 @@ inline static char *fetchline(Queue *q) {
 		return NULL;
 	}
 	if(fgets(buf, BUFFER_SIZE, stdin) != NULL) {
-    	if (strncmp(buf[BUFFER_SIZE - 2], "\0", 1) ！= 0 && 
+    	if (strncmp(&buf[BUFFER_SIZE - 2], "\0", 1) != 0 && 
     		buf[BUFFER_SIZE - 2] != '\n' && buf[BUFFER_SIZE - 2] != EOF) {
-    		int ch;
+            int ch;
     		int c = 0;
     		while ((ch = fgetc(stdin)) != '\n' && ch != EOF) {
-    			c++;
+                c++;
     		}
     		if (c != 0) {
     			free(buf);
@@ -101,8 +101,11 @@ inline static char *fetchline(Queue *q) {
     			return NULL;
     		}
     	}
+        return buf;
     }
-    return buf;
+    else {
+        return NULL;
+    }
 }
 
 inline static char *replacew(char *line) {
