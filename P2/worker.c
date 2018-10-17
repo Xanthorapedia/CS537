@@ -13,6 +13,7 @@ typedef void (*dispatch_func)(Queue *, char *);
 // used to convert letters to uppercase
 #define UPPER_BIT 32
 #define MUNCH2_C '*'
+#define BUFFER_SIZE 1024
 #define EOFMSG \
 	"=================================================\n"\
 	"EOF reached, number of string(s) processed: %d\n"\
@@ -77,9 +78,31 @@ inline static void gen_worker_run(Queue **qs,
 
 inline static char *fetchline(Queue *q) {
 	(void)(q);
-	char *line = NULL;
-	size_t len = 0;
-	return (getline(&line, &len, stdin) == -1) ? free(line), NULL : line;
+	// char *line = NULL;
+	// size_t len = 0;
+	// return (getline(&line, &len, stdin) == -1) ? free(line), NULL : line;
+	char *buf;
+	if((buf = calloc(BUFFER_SIZE, sizeof(char))) == NULL) {
+		fprintf(stderr, "Cannot calloc for buffer\n");
+		return NULL;
+	}
+	if(fgets(buf, BUFFER_SIZE, stdin) != NULL) {
+    	if (strncmp(buf[BUFFER_SIZE - 2], "\0", 1) ！= 0 && 
+    		buf[BUFFER_SIZE - 2] != '\n' && buf[BUFFER_SIZE - 2] != EOF) {
+    		int ch;
+    		int c = 0;
+    		while ((ch = fgetc(stdin)) != '\n' && ch != EOF) {
+    			c++;
+    		}
+    		if (c != 0) {
+    			free(buf);
+    			buf = NULL;
+    			fprintf(stderr, "line exceeds buffer size\n");
+    			return NULL;
+    		}
+    	}
+    }
+    return buf;
 }
 
 inline static char *replacew(char *line) {
