@@ -1,3 +1,7 @@
+/* author1: Dasong Gao
+ * author2: Haozhe Luo
+ */
+
 #include "queue.h"
 
 Queue *CreateStringQueue(int size) {
