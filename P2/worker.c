@@ -19,8 +19,13 @@ typedef void (*dispatch_func)(Queue *, char *);
 	"EOF reached, number of string(s) processed: %d\n"\
 	"=================================================\n"
 
+<<<<<<< HEAD
 
 // TODO probably pthread_exit(???)
+=======
+// max buffersize (including 1023 char + '\0')
+const int BUFFER_SIZE = 1024;
+>>>>>>> a29388b... chage buffer size to 1023+\n, use const for constants
 
 // a template worker function
 inline static void gen_worker_run(Queue**, fetch_func, process_func, dispatch_func);
@@ -82,17 +87,18 @@ inline static char *fetchline(Queue *q) {
 	// size_t len = 0;
 	// return (getline(&line, &len, stdin) == -1) ? free(line), NULL : line;
 	char *buf;
+<<<<<<< HEAD
 	if((buf = calloc(BUFFER_SIZE, sizeof(char))) == NULL) {
 		fprintf(stderr, "Cannot calloc for buffer\n");
 		return NULL;
 	}
 	if(fgets(buf, BUFFER_SIZE, stdin) != NULL) {
-    	if (strncmp(&buf[BUFFER_SIZE - 2], "\0", 1) != 0 && 
+    	if (strncmp(buf[BUFFER_SIZE - 2], "\0", 1) ！= 0 && 
     		buf[BUFFER_SIZE - 2] != '\n' && buf[BUFFER_SIZE - 2] != EOF) {
-            int ch;
+    		int ch;
     		int c = 0;
     		while ((ch = fgetc(stdin)) != '\n' && ch != EOF) {
-                c++;
+    			c++;
     		}
     		if (c != 0) {
     			free(buf);
@@ -101,11 +107,46 @@ inline static char *fetchline(Queue *q) {
     			return NULL;
     		}
     	}
-        return buf;
     }
-    else {
-        return NULL;
+    return buf;
+=======
+	// fgets reads in '\n' also, makes room for that
+	if((buf = malloc((BUFFER_SIZE + 1) * sizeof(char))) == NULL) {
+		fprintf(stderr, "Cannot calloc for buffer\n");
+		return NULL;
+	}
+	// canary bird for detecting long lines (1023 char + '\n')
+	// should be changed if the last meaningful char step on this
+	buf[BUFFER_SIZE - 1] = '\0';
+	char *ret;
+	int invalid_line = 0;
+	// keep trying in case the line is invalid
+	while ((ret = fgets(buf, BUFFER_SIZE + 1, stdin))) {
+		char *eol = strchr(buf, '\n');
+		if (eol) *eol = '\0';
+    	if (buf[BUFFER_SIZE - 1] == '\0' || ungetc(fgetc(stdin), stdin) == EOF) {
+			// the mess is cleared, go and grab a new one
+			// or just move on
+			if (invalid_line > 0)
+				invalid_line = 0;
+			else
+				break;
+    	}
+		else {
+			invalid_line++;
+			// only for the first time
+			if (invalid_line == 1)
+    			fprintf(stderr, "Warning: Line exceeds buffer size, ignored.\n");
+		}
+		buf[BUFFER_SIZE - 1] = '\0';
     }
+	// just EOF and nothing else
+	if (!ret) {
+		free(buf);
+		buf = NULL;
+	}
+	return buf;
+>>>>>>> a29388b... chage buffer size to 1023+\n, use const for constants
 }
 
 inline static char *replacew(char *line) {
@@ -125,7 +166,7 @@ inline static void display(Queue* q, char *line) {
 	// this value is stored in the thread-local space
 	static __thread int nprocessed = 0;
 	if (line) {
-		fprintf(stdout, "%s", line);
+		fprintf(stdout, "%s\n", line);
 		free(line);
 		nprocessed++;
 	}

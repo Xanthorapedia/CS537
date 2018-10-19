@@ -2,18 +2,15 @@
 #include "queue.h"
 #include "worker.h"
 
-#define QUEUESIZE 10
-#define QUEUECOUNT 3
-#define THREADCOUNT 4
+const int QUEUESIZE = 10;
+const int QUEUECOUNT = 3;
+const int THREADCOUNT = 4;
 
 // thread runnables and their names
 void *(*const worker_run[])(void *) =
 	{ reader_run, munch1_run, munch2_run, writer_run };
 const char *threadname[] =
 	{ "Reader", "Munch1", "Munch2", "Writer" };
-
-// TODO pthread_create with attr?
-// TODO pthread_join retval?
 
 int main(int argc, char *argv[]) {
 	(void)(argc), (void)(argv);

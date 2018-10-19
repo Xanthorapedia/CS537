@@ -2,6 +2,9 @@
 
 #pragma once
 
+// max length of each string (including '\0')
+extern const int BUFFER_SIZE;
+
 /*
  * In each thread routines below, arg is an array of two Queue *'s, i.e.
  * Queue *in = arg[0];
