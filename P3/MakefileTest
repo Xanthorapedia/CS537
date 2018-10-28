@@ -1,0 +1,15 @@
+scan-build: clean
+	scan-build -o $(SCAN_BUILD_DIR) make
+
+$(EXE): main.o parser.o utils.o
+	$(CC) $(CPPFLAGS) -o $(EXE) *.o
+
+clean:
+	rm -rf *.o $(EXE) $(SCAN_BUILD_DIR)
+	rm -rf $(SCAN_BUILD_DIR)
+
+all: $(EXE)
+
+scan-view: scan-build
+	firefox -new-window $(SCAN_BUILD_DIR)/*/index.html
+
