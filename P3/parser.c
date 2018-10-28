@@ -1,4 +1,6 @@
 #include "parser.h"
+#include "autoarr.h"
+#include "stdinclude.h"
 #include "utils.h"
 
 #define REGEX_GETGROUP(str, matches, n) \

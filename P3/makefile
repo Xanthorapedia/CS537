@@ -10,7 +10,7 @@ SCAN_BUILD_DIR = scan-build-out
 
 all: $(EXE)
 
-$(EXE): main.o parser.o utils.o
+$(EXE): main.o parser.o utils.o autoarr.o
 	$(CC) $(CPPFLAGS) -o $(EXE) *.o
 
 clean:
