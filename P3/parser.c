@@ -58,18 +58,11 @@ int mparse(char *mpath, PGoal_t *mgoals[], int *nmgoals) {
 			int ndep = 0;
 			char **depnames = splits(depstr, " \r\t\f\v", &ndep);
 			free(depstr);
-			PGoal_t *dep = malloc(ndep * sizeof(PGoal_t));
-			for (int i = 0; i < ndep; i++) {
-				// the stub goals are temporarily created, should be resolved later
-				dep[i] = malloc(sizeof(Goal_t));
-				dep[i]->name = depnames[i];
-			}
-			free(depnames);
 
 			// record new goal and throw the old cmds away
-			newgoal = malloc(sizeof(Goal_t));
+			newgoal = PEONZ(malloc, sizeof(Goal_t));
 			newgoal->name = tgtname;
-			newgoal->dep = dep;
+			newgoal->depname = depnames;
 			newgoal->ndep = ndep;
 			ASARR_RENEW(pcmdlist);
 			ASARR_INSERT(pgoallist, newgoal);
@@ -130,6 +123,21 @@ die:
 	regfree(&cmd_reg);
 	fclose(mfile);
 	return -1;
+}
+
+int mresovle(PGoal_t *goals, int ngoals) {
+	// create htable with hcreate_r()
+	// insert into ht (goal->name, goal) for all goal in goals
+	// for each goal in goals
+	//     for each depname(char *) in goal->depname
+	//         search ht for depnames
+	//         if found
+	//             tmp = depname
+	//             goal->dep(PGoal_t) = search result
+	//             free tmp
+	//         else
+	//             error
+	return 0;
 }
 
 int matchall(regex_t *preg, char *str, regmatch_t **pmatch) {

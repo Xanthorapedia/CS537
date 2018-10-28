@@ -12,8 +12,11 @@ typedef struct __cmd {
 typedef struct __goal {
 	// name of the goal
 	char *name;
-	// dependencies
-	struct __goal **dep;
+	// unresovled dependency names or resolved dependencies
+	union {
+		char **depname;
+		struct __goal **dep;
+	};
 	size_t ndep;
 	// list of command lines to execute
 	struct __cmd  **cmd;
