@@ -6,3 +6,5 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define __USE_GNU
+

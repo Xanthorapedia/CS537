@@ -1,8 +1,10 @@
 #include "parser.h"
-#include "autoarr.h"
 #include "stdinclude.h"
+#include "autoarr.h"
 #include "utils.h"
 
+// A macro for fetching the n'the group from mathes
+// Basically strdup's from str + start_offset to str + end_offset
 #define REGEX_GETGROUP(str, matches, n) \
 		PEONZ(strndup, \
 			(str) + (matches)[n].rm_so, \
@@ -18,16 +20,10 @@ const size_t FINAL_MAXMATCH = 256;
 const char TGT_PTN[] = "^([^[:space:]:]+)\\s*:((\\s*\\S+)*)\\s*";
 const char CMD_PTN[] = "^\t(\\S+)((\\s*\\S+)*)\\s*(<.+)?(>.+)?\\s*";
 
-// Try to match the regex.
-// If all pmatch entries are occupied, *pmatch will double its size and
-// matching is performed again. Stops until either full match results are
-// obtained or the match size > FINAL_MAXMATCH
-int matchall(regex_t *preg, char *str, regmatch_t **pmatch);
-
 // Splits "str," delimited by "delim" into "nparts"
-char **splits(char *str, char *delim, int *nparts);
+char **splits(char *str, char *delim, size_t *nparts);
 
-int mparse(char *mpath, PGoal_t *mgoals[], int *nmgoals) {
+int mparse(char *mpath, PGoal_t *mgoals[], size_t *nmgoals) {
 	// compile regex
 	// uses POSIX Extended Regular Expression syntax (group without "\(")
 	// and enable '^' and '$'
@@ -36,6 +32,7 @@ int mparse(char *mpath, PGoal_t *mgoals[], int *nmgoals) {
 	PEONN(regcomp, &cmd_reg, CMD_PTN, REG_EXTENDED | REG_NEWLINE);
 	regmatch_t matches[REGEX_NGROUPS + 1];// = malloc(INIT_MAXMATCH * sizeof(regmatch_t));
 
+	// TODO: exit when file not open
 	FILE *mfile  = PEONZ(fopen, mpath, "r");
 	char   *line = NULL;
 	size_t  len  = 0;
@@ -55,7 +52,7 @@ int mparse(char *mpath, PGoal_t *mgoals[], int *nmgoals) {
 			// parse goal
 			char *tgtname = REGEX_GETGROUP(line, matches, 1);
 			char *depstr  = REGEX_GETGROUP(line, matches, 2);
-			int ndep = 0;
+			size_t ndep = 0;
 			char **depnames = splits(depstr, " \r\t\f\v", &ndep);
 			free(depstr);
 
@@ -81,7 +78,7 @@ int mparse(char *mpath, PGoal_t *mgoals[], int *nmgoals) {
 			char *args = REGEX_GETGROUP(line, matches, 2);
 			// char *fin  = REGEX_GETGROUP(line, matches, 4);
 			// char *fout = REGEX_GETGROUP(line, matches, 5);
-			int nargs = 0;
+			size_t nargs = 0;
 			char **argv = splits(args, " \r\t\f\v", &nargs);
 			free(args);
 
@@ -125,36 +122,7 @@ die:
 	return -1;
 }
 
-int mresovle(PGoal_t *goals, int ngoals) {
-	// create htable with hcreate_r()
-	// insert into ht (goal->name, goal) for all goal in goals
-	// for each goal in goals
-	//     for each depname(char *) in goal->depname
-	//         search ht for depnames
-	//         if found
-	//             tmp = depname
-	//             goal->dep(PGoal_t) = search result
-	//             free tmp
-	//         else
-	//             error
-	return 0;
-}
-
-int matchall(regex_t *preg, char *str, regmatch_t **pmatch) {
-	size_t cur_maxmatch = INIT_MAXMATCH;
-	int notmatch;
-	// enlarge buffer if there is a match but the last pmatch is occupied
-	// (possibly unstored results)
-	while ((notmatch = regexec(preg, str, cur_maxmatch, *pmatch, 0)) == 0 &&
-			*pmatch && (*pmatch)[cur_maxmatch - 1].rm_so != -1 &&
-			cur_maxmatch < FINAL_MAXMATCH) {
-		cur_maxmatch *= 2;
-		*pmatch = PEONZ(realloc, *pmatch, cur_maxmatch);
-	}
-	return notmatch;
-}
-
-char **splits(char *str, char *delim, int *nparts) {
+char **splits(char *str, char *delim, size_t *nparts) {
 	ASARR_INIT(strings, char *);
 	char *token = strtok(str, delim);
 	while (token != NULL) {

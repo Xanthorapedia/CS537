@@ -1,4 +1,5 @@
 #include "stdinclude.h"
+#include <search.h>
 
 #pragma once
 
@@ -22,4 +23,6 @@ typedef struct __goal {
 	struct __cmd  **cmd;
 	size_t ncmd;
 } Goal_t, *PGoal_t;
+
+int mresovle(PGoal_t *goals, size_t ngoals);
 

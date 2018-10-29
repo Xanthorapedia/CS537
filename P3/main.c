@@ -8,7 +8,7 @@
 int main(int argc, char *argv[]) {
 	(void)(argc), (void)(argv);
 	PGoal_t *mgoals = NULL;
-	int nmgoals = 0;
+	size_t nmgoals = 0;
 	mparse("MakefileTest", &mgoals, &nmgoals);
 	return 0;
 }
