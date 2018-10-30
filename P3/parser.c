@@ -18,19 +18,20 @@ const size_t FINAL_MAXMATCH = 256;
 
 // regex patterns for matching target and command line
 const char TGT_PTN[] = "^([^[:space:]:]+)\\s*:((\\s*\\S+)*)\\s*";
-const char CMD_PTN[] = "^\t(\\S+)((\\s*\\S+)*)\\s*(<.+)?(>.+)?\\s*";
+const char CMD_PTN[] = "^\t(\\S+(\\s*\\S+)*)\\s*(<.+)?(>.+)?\\s*";
 
 // Splits "str," delimited by "delim" into "nparts"
 char **splits(char *str, char *delim, size_t *nparts);
 
-int mparse(char *mpath, PGoal_t *mgoals[], size_t *nmgoals) {
+int mparse(char *mpath, PGoal_t *mgoals[], size_t *nmgoals, size_t *nobjs) {
 	// compile regex
 	// uses POSIX Extended Regular Expression syntax (group without "\(")
 	// and enable '^' and '$'
 	regex_t tgt_reg, cmd_reg;
 	PEONN(regcomp, &tgt_reg, TGT_PTN, REG_EXTENDED | REG_NEWLINE);
 	PEONN(regcomp, &cmd_reg, CMD_PTN, REG_EXTENDED | REG_NEWLINE);
-	regmatch_t matches[REGEX_NGROUPS + 1];// = malloc(INIT_MAXMATCH * sizeof(regmatch_t));
+	regmatch_t matches[REGEX_NGROUPS + 1];
+	*nobjs = 0;
 
 	// TODO: exit when file not open
 	FILE *mfile  = PEONZ(fopen, mpath, "r");
@@ -57,14 +58,12 @@ int mparse(char *mpath, PGoal_t *mgoals[], size_t *nmgoals) {
 			free(depstr);
 
 			// record new goal and throw the old cmds away
-			newgoal = PEONZ(malloc, sizeof(Goal_t));
-			newgoal->name = tgtname;
-			newgoal->depname = depnames;
-			newgoal->ndep = ndep;
+			newgoal = gcreate(tgtname, depnames, NULL, ndep, NULL, 0);
+			*nobjs += ndep + 1;
 			ASARR_RENEW(pcmdlist);
 			ASARR_INSERT(pgoallist, newgoal);
 			in_goal = 1;
-		
+
 		}
 		// a cmd
 		else if (regexec(&cmd_reg, line, REGEX_NGROUPS, matches, 0) == 0) {
@@ -74,18 +73,15 @@ int mparse(char *mpath, PGoal_t *mgoals[], size_t *nmgoals) {
 				goto die;
 			}
 			// parse cmd
-			char *exe  = REGEX_GETGROUP(line, matches, 1);
-			char *args = REGEX_GETGROUP(line, matches, 2);
-			// char *fin  = REGEX_GETGROUP(line, matches, 4);
-			// char *fout = REGEX_GETGROUP(line, matches, 5);
-			size_t nargs = 0;
-			char **argv = splits(args, " \r\t\f\v", &nargs);
+			char *args = REGEX_GETGROUP(line, matches, 1);
+			// char *fin  = REGEX_GETGROUP(line, matches, 3);
+			// char *fout = REGEX_GETGROUP(line, matches, 4);
+			size_t argc = 0;
+			char **argv = splits(args, " \r\t\f\v", &argc);
 			free(args);
 
 			// record new cmd and put into the list of the current goal
-			newcmd = malloc(sizeof(Cmd_t));
-			newcmd->path = exe;
-			newcmd->argv = argv;
+			newcmd = ccreate(argc, argv);
 			// TODO redirect fin, fout
 			ASARR_INSERT(pcmdlist, newcmd);
 			newgoal->cmd  = ASARR_GET(pcmdlist);
