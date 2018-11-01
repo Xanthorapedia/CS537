@@ -35,6 +35,9 @@ int mparse(char *mpath, PGoal_t *mgoals[], size_t *nmgoals, size_t *nobjs) {
 
 	// TODO: exit when file not open
 	FILE *mfile  = PEONZ(fopen, mpath, "r");
+	if (mfile == NULL) {
+		exit(-1);
+	}
 	char   *line = NULL;
 	size_t  len  = 0;
 	ssize_t nchar = 0;

@@ -1,7 +1,6 @@
 #include "stdinclude.h"
 #include <errno.h>
 #include <search.h>
-#include <unistd.h>
 
 #pragma once
 
