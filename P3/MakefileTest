@@ -1,4 +1,5 @@
 scan-build: clean
+	
 	scan-build -o $(SCAN_BUILD_DIR) make
 
 $(EXE): main.o parser.o utils.o

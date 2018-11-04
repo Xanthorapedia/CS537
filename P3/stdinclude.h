@@ -3,8 +3,13 @@
  */
 
 // The collection of all standard libraries used in this program
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
 #define __USE_GNU
+#include <search.h>
+
+typedef struct hsearch_data HTable;
 

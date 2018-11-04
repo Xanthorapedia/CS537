@@ -1,12 +1,16 @@
 #include "stdinclude.h"
 #include <errno.h>
-#include <search.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <time.h>
+
+#include "autoarr.h"
 
 #pragma once
 
 // A command line object that can be easily executed by exec
 typedef struct __cmd {
-	size_t argc;
 	char **argv;
 } Cmd_t, *PCmd_t;
 
@@ -19,19 +23,28 @@ typedef struct __goal {
 		char **depname;
 		struct __goal **dep;
 	};
-	size_t ndep;
+	int ndep;
 	// list of command lines to execute
 	struct __cmd  **cmd;
-	size_t ncmd;
+	int ncmd;
+	// metadata used by the functions
+	// basically the index in the list (file) and the time of modification
+	struct _metadata {
+		int lineno;
+		int idx;
+		time_t modt;
+	} metadata;
 } Goal_t, *PGoal_t;
 
-PCmd_t ccreate(size_t argc, char **argv);
+PCmd_t ccreate(char **argv);
 void cdestroy(PCmd_t cmd);
 void cprint(PCmd_t cmd);
 
-PGoal_t gcreate(char *name, char **depname, PGoal_t *dep, size_t ndep, PCmd_t *cmd, size_t ncmd);
+PGoal_t gcreate(char *name, char **depname, PGoal_t *dep, int ndep, PCmd_t *cmd, size_t ncmd);
 void gdestroy(PGoal_t goal);
 void gprint(PGoal_t goal);
 
-int mresovle(PGoal_t *goallist[], size_t *ng, size_t nbojs);
+int mcheckupdate(char *appointed, ASArr *goals, ASArr *updatelist);
+
+int gupdt(PGoal_t goal);
 

@@ -3,6 +3,7 @@
  */
 
 #include "stdinclude.h"
+#include "autoarr.h"
 #include "parser.h"
 #include "goal.h"
 #include "utils.h"
@@ -12,8 +13,6 @@
 int main(int argc, char *argv[]) {
 	char opt;
 	char *makefile_path = NULL;
-	char **goals = NULL;
-	int unrecg_arg_count = 0;
 	while ((opt = getopt(argc, argv, OPTSTRING)) != -1) {
 		switch (opt) {
 			case 'f':
@@ -23,14 +22,6 @@ int main(int argc, char *argv[]) {
 				return -1;
 		}
 	}
-	while (optind < argc) {
-		if (unrecg_arg_count == 0) {
-			goals = PEONZ(calloc, argc - optind, sizeof(char*));
-		}
-		goals[unrecg_arg_count] = argv[optind];
-		optind++;
-		unrecg_arg_count++;
-	}
 	if (makefile_path == NULL) {
 		makefile_path = DEFAULT_PATH;
 	}
@@ -38,19 +29,41 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Cannot read file %s\n", makefile_path);
 		return -1;
 	}
-	PGoal_t *mgoals = NULL;
-	size_t nmgoals = 0;
-	size_t nobj = 0;
-	mparse(makefile_path, &mgoals, &nmgoals, &nobj);
-	mresovle(&mgoals, &nmgoals, nobj);
-	for (size_t i = 0; i < nmgoals; i++) {
-		gprint(mgoals[i]);
+	ASARR_INIT(goals, PGoal_t);
+	if (mparse(makefile_path, goals) != 0) {
+		return 1;
 	}
-	for (size_t i = 0; i < nmgoals; i++) {
-		gdestroy(mgoals[i]);
+	if (ASARR_SIZE(goals) == 0) {
+		fprintf(stderr, "537make: *** No targets.  Stop.");
+		return 1;
 	}
-	free(mgoals);
-	free(goals);
+	char *appointed = optind < argc ? argv[optind] : ASARR_GET(goals)[0]->name;
+//	for (int i = 0; i < nmgoals; i++) {
+//		PGoal_t goal = ASARR_GET(goals)[i];
+//		gprint(goal);
+//	}
+	ASARR_INIT(ulist, PGoal_t);
+	if (mcheckupdate(appointed, goals, ulist) != 0)
+		return -1;
+	int cmdexecd = 0;
+	for (int i = 0; i < ASARR_SIZE(ulist); i++) {
+		PGoal_t goal = ASARR_GET(ulist)[i];
+		cmdexecd += goal->ncmd;
+		//gprint(goal);
+		int ret = 0;
+		if ((ret = gupdt(goal)) != 0) {
+			fprintf(stderr, "537make: *** [%s] Error %d\n", appointed, ret);
+			return 1;
+		}
+	}
+	if (cmdexecd == 0) {
+		fprintf(stdout, "537make: '%s' is up to date.\n", appointed);
+	}
+	for (int i = 0; i < ASARR_SIZE(goals); i++) {
+		gdestroy(ASARR_GET(goals)[i]);
+	}
+	ASARR_DESTROY(ulist);
+	ASARR_DESTROY(goals);
 	return 0;
 }
 
