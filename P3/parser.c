@@ -9,7 +9,7 @@
 			(str) + (matches)[n].rm_so, \
 			(matches)[n].rm_eo - (matches)[n].rm_so \
 		)
-
+#define BUFFER_SIZE 1024
 // the lower and upper bounds of the max number of regex matches to consider
 const int REGEX_NGROUPS = 5;
 const int INIT_MAXMATCH = 16;
@@ -40,7 +40,7 @@ int mparse(char *mpath, ASArr *pgoallist) {
 	// for creating htable later
 	int nobjs = 0;
 	// line #
-	int lineno = 0;
+	int lineno = 1;
 	// goal index
 	int idx = 0;
 
@@ -49,7 +49,7 @@ int mparse(char *mpath, ASArr *pgoallist) {
 		exit(-1);
 	}
 	char   *line = NULL;
-	size_t  len  = 0;
+//	size_t  len  = 0;
 	ssize_t nchar = 0;
 	PGoal_t newgoal = NULL;
 	PCmd_t  newcmd  = NULL;
@@ -57,7 +57,20 @@ int mparse(char *mpath, ASArr *pgoallist) {
 	ASARR_INIT(pcmdlist,  PCmd_t);
 	// flag to test for dangling cmd
 	int in_goal = 0;
-	while ((nchar = getline(&line, &len, mfile)) != -1) {
+	if((line = calloc((BUFFER_SIZE + 1), sizeof(char))) == NULL) {
+		fprintf(stderr, "Cannot calloc for buffer\n");
+		return -1;
+	}
+	line[BUFFER_SIZE - 1] = '\0';
+	char *ret;
+	while ((ret = fgets(line, BUFFER_SIZE + 1, mfile))) {
+		char *eol = strchr(line, '\n');
+		if (eol) *eol = '\0';
+		if (line[BUFFER_SIZE - 1] != '\0' && ungetc(fgetc(mfile), mfile) != EOF) {
+			fprintf(stderr, "%d: Line exceeds buffer size.\n", lineno);
+			return -1;
+		}
+		nchar = strlen(line);
 		lineno++;
 		// skip empty lines or lines with only "\n"
 		if ((nchar == 1 && line[0] == '\n') || line[0] == '#' || nchar == 0)
@@ -107,6 +120,7 @@ int mparse(char *mpath, ASArr *pgoallist) {
 			fprintf(stderr, "%d: Invalid line: %s\n", lineno, line);
 			goto die;
 		}
+		line[BUFFER_SIZE - 1] = '\0';
 	}
 	// embark the output
 	HTable goaltable = { 0 };

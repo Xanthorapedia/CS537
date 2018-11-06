@@ -9,7 +9,6 @@ EXE = 537make
 SCAN_BUILD_DIR = scan-build-out
 
 all: $(EXE)
-	echo hello
 
 $(EXE): main.o parser.o utils.o autoarr.o goal.o
 	$(CC) $(CPPFLAGS) -o $(EXE) *.o
