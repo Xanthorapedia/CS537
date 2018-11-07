@@ -1,3 +1,7 @@
+/* author1: Dasong Gao
+ * author2: Haozhe Luo
+ */
+
 #include "parser.h"
 #include "autoarr.h"
 #include "utils.h"
@@ -11,13 +15,13 @@
 		)
 #define BUFFER_SIZE 1024
 // the lower and upper bounds of the max number of regex matches to consider
-const int REGEX_NGROUPS = 5;
+const int REGEX_NGROUPS = 8;
 const int INIT_MAXMATCH = 16;
 const int FINAL_MAXMATCH = 256;
 
 // regex patterns for matching target and command line
 const char TGT_PTN[] = "^([^[:space:]:]+)\\s*:((\\s*[^[:space:]:]+)*)\\s*";
-const char CMD_PTN[] = "^\t([^<>]*)\\s*(<.+)?(>.+)?\\s*";
+const char CMD_PTN[] = "^\t([^<>]+)\\s*((<|>)\\s*([^<>[:space:]]+)\\s*)?((<|>)\\s*([^<>[:space:]]+)\\s*)?\\s*";
 
 // resolves goal references and print error if not found
 int mresovle(ASArr *pgoallist, HTable *ht);
@@ -68,7 +72,7 @@ int mparse(char *mpath, ASArr *pgoallist) {
 		if (eol) *eol = '\0';
 		if (line[BUFFER_SIZE - 1] != '\0' && ungetc(fgetc(mfile), mfile) != EOF) {
 			fprintf(stderr, "%d: Line exceeds buffer size.\n", lineno);
-			return -1;
+			goto die;
 		}
 		nchar = strlen(line);
 		lineno++;
@@ -101,15 +105,49 @@ int mparse(char *mpath, ASArr *pgoallist) {
 			}
 			// parse cmd
 			char *args = REGEX_GETGROUP(line, matches, 1);
-			// char *fin  = REGEX_GETGROUP(line, matches, 2);
-			// char *fout = REGEX_GETGROUP(line, matches, 3);
+			char *io0  = REGEX_GETGROUP(line, matches, 3);
+			char *f0   = REGEX_GETGROUP(line, matches, 4);
+			char *io1  = REGEX_GETGROUP(line, matches, 6);
+			char *f1   = REGEX_GETGROUP(line, matches, 7);
+
+			// cmd args
 			char **argv = splits(args, " \r\t\f\v", NULL);
 			free(args);
 
+			// input/output file names
+			char *ifn = NULL;
+			char *ofn = NULL;
+			// test for redirection
+			if (strlen(io0) != 0) {
+				if (io0[0] == '<') {
+					ifn = f0;
+				}
+				else {
+					ofn = f0;
+				}
+				if (strlen(io1) != 0) {
+					if (io0[0] == io1[0]) {
+						fprintf(stderr, "%d: Invalid line: %s\n", lineno, line);
+						goto die;
+					}
+					else if (io1[0] == '<') {
+						ifn = f1;
+					}
+					else {
+						ofn = f1;
+					}
+				}
+			}
+			else {
+				free(f0);
+				free(f1);
+			}
+			free(io0);
+			free(io1);
 			// cmd may be empty
 			if (argv != NULL) {
 				// record new cmd and put into the list of the current goal
-				newcmd = ccreate(argv);
+				newcmd = ccreate(argv, ifn, ofn);
 				// TODO redirect fin, fout
 				ASARR_INSERT(pcmdlist, newcmd);
 				newgoal->ncmd = ASARR_SIZE(pcmdlist);
@@ -127,7 +165,7 @@ int mparse(char *mpath, ASArr *pgoallist) {
 	PEONZ(hcreate_r, nobjs, &goaltable);
 	if (mresovle(pgoallist, &goaltable) != 0) {
 		fprintf(stderr, "Cannot resolve dependencies.\n");
-		return -1;
+		goto die;
 	}
 	hdestroy_r(&goaltable);
 
@@ -143,8 +181,7 @@ int mparse(char *mpath, ASArr *pgoallist) {
 die:
 	ASARR_DESTROY(pgoallist);
 	ASARR_DESTROY(pcmdlist);
-	if (line != NULL)
-		free(line);
+	free(line);
 	regfree(&tgt_reg);
 	regfree(&cmd_reg);
 	fclose(mfile);
@@ -194,7 +231,7 @@ int mresovle(ASArr *pgoallist, HTable *ht) {
 				if (access(curdep, F_OK) != -1) {
 					gresolved = gcreate(curdep, NULL, NULL, 0, NULL, 0);
 					gresolved->metadata.idx = idx++;
-					query.key  = curdep;
+					query.key  = gresolved->name;
 					query.data = gresolved;
 					if (hsearch_r(query, ENTER, &ret, ht) != 0 && errno == ENOMEM) {
 						fprintf(stderr, "Fatal: hsearch() mem error\n");
@@ -208,6 +245,9 @@ int mresovle(ASArr *pgoallist, HTable *ht) {
 					return -1;
 				}
 			}
+			// goal already exists, no need to keep the name any more
+			else
+				free(curdep);
 			goal->dep[j] = gresolved;
 		}
 		free(depname);

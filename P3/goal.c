@@ -1,3 +1,7 @@
+/* author1: Dasong Gao
+ * author2: Haozhe Luo
+ */
+
 #include "goal.h"
 #include "autoarr.h"
 #include "utils.h"
@@ -12,9 +16,11 @@ time_t chkuputil(PGoal_t goal, int *visited, int *onstack, int appointed, int he
 
 int cexec(PCmd_t cmd);
 
-PCmd_t ccreate(char **argv) {
+PCmd_t ccreate(char **argv, char *ifn, char *ofn) {
 	PCmd_t newcmd = PEONZ(malloc, sizeof(Cmd_t));
 	newcmd->argv = argv;
+	newcmd->ifn = ifn;
+	newcmd->ofn = ofn;
 	return newcmd;
 }
 
@@ -22,6 +28,8 @@ void cdestroy(PCmd_t cmd) {
 	for (char **parg = cmd->argv; *parg != NULL; parg++)
 		free(*parg);
 	free(cmd->argv);
+	free(cmd->ifn);
+	free(cmd->ofn);
 	free(cmd);
 }
 
@@ -162,14 +170,39 @@ int cexec(PCmd_t cmd) {
 	else if (pid != 0)
 		waitpid(pid, &status, 0);
 	else {
+		// print the command
 		char **parg = cmd->argv;
 		for (; *(parg + 1) != NULL; parg++) {
 			printf("%s ", *parg);
 		}
-		printf("%s\n", *parg);
+		printf("%s", *parg);
+		// NULL or "" are all treated as nothing
+		if (cmd->ifn != NULL && strlen(cmd->ifn) > 0)
+			printf(" < %s", cmd->ifn);
+		if (cmd->ofn != NULL && strlen(cmd->ofn) > 0)
+			printf(" > %s", cmd->ofn);
+		printf("\n");
+		// print flushed, good to redirect
+		if (cmd->ifn != NULL && strlen(cmd->ifn) > 0) {
+			int fd = open(cmd->ifn, O_RDONLY);
+			if (fd < 0) {
+				fprintf(stderr, "537make: Cannot open '%s' for reading.\n", cmd->ifn);
+				exit(-1);
+			}
+			dup2(fd, 0);
+		}
+		if (cmd->ofn != NULL && strlen(cmd->ofn) > 0) {
+			int fd = open(cmd->ofn, O_WRONLY | O_CREAT, S_IRWXU);
+			if (fd < 0) {
+				fprintf(stderr, "537make: Cannot open '%s' for writing.\n", cmd->ofn);
+				exit(-1);
+			}
+			dup2(fd, 1);
+		}
+		// execute new command
 		if (execvp(cmd->argv[0], cmd->argv)) {
 			fprintf(stderr, "Fatal: execvp() failed.\n");
-			return -1;
+			exit(-1);
 		}
 	}
 	return status;

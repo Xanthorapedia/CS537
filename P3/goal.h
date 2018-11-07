@@ -1,3 +1,7 @@
+/* author1: Dasong Gao
+ * author2: Haozhe Luo
+ */
+
 #include "stdinclude.h"
 #include <errno.h>
 #include <fcntl.h>
@@ -12,6 +16,9 @@
 // A command line object that can be easily executed by exec
 typedef struct __cmd {
 	char **argv;
+	// input and output file name
+	char *ifn;
+	char *ofn;
 } Cmd_t, *PCmd_t;
 
 // A 537make goal
@@ -36,7 +43,7 @@ typedef struct __goal {
 	} metadata;
 } Goal_t, *PGoal_t;
 
-PCmd_t ccreate(char **argv);
+PCmd_t ccreate(char **argv, char *ifn, char *ofn);
 void cdestroy(PCmd_t cmd);
 void cprint(PCmd_t cmd);
 

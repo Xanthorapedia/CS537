@@ -1,6 +1,10 @@
 all: prog1 prog2 prog3
 
-
+print:
+	ls > cat.txt
+	wc< ./main2.c>wc.txt
+	cat <wc.txt
+	cat cat.txt
 
 
 prog1 : main1.o queue.o reader.o writer.o
