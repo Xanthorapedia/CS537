@@ -1,0 +1,5 @@
+goal.c 101: did not free malloced memory before exit. fixed
+goal.c 102: did not free malloced memory before exit. fixed
+main.c 45-48: did not free malloced memory before exit. fixed
+main.c 53-56: did not free malloced memory before exit. fixed
+main.c 64-68: did not free malloced memory before exit. fixed

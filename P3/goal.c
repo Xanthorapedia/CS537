@@ -98,6 +98,8 @@ int mcheckupdate(char *appointed, ASArr *goals, ASArr *updatelist) {
 			app = appfound = 1;
 		// +1 to avoid skipping unvisited goal[0]
 		if (chkuputil(goal, visited, onstack, app, i + 1, updatelist) < 0) {
+			free(visited);
+			free(onstack);
 			fprintf(stderr, "Bad dependency graph. Stop.\n");
 			return -1;
 		}

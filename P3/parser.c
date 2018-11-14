@@ -52,13 +52,13 @@ int mparse(char *mpath, ASArr *pgoallist) {
 	if (mfile == NULL) {
 		exit(-1);
 	}
-	char   *line = NULL;
+	char *line = NULL;
 //	size_t  len  = 0;
 	ssize_t nchar = 0;
 	PGoal_t newgoal = NULL;
 	PCmd_t  newcmd  = NULL;
 	ASARR_DEFTYPE(pgoallist, PGoal_t);
-	ASARR_INIT(pcmdlist,  PCmd_t);
+	ASARR_INIT(pcmdlist, PCmd_t);
 	// flag to test for dangling cmd
 	int in_goal = 0;
 	if((line = calloc((BUFFER_SIZE + 1), sizeof(char))) == NULL) {
@@ -127,6 +127,7 @@ int mparse(char *mpath, ASArr *pgoallist) {
 				}
 				if (strlen(io1) != 0) {
 					if (io0[0] == io1[0]) {
+						free(f1);
 						fprintf(stderr, "%d: Invalid line: %s\n", lineno, line);
 						goto die;
 					}
@@ -170,7 +171,7 @@ int mparse(char *mpath, ASArr *pgoallist) {
 	hdestroy_r(&goaltable);
 
 	// clean up
-	ASARR_STRIP(pcmdlist);
+	ASARR_DESTROY(pcmdlist);
 	if (line != NULL)
 		free(line);
 	regfree(&tgt_reg);
@@ -179,7 +180,9 @@ int mparse(char *mpath, ASArr *pgoallist) {
 	return 0;
 
 die:
-	ASARR_DESTROY(pgoallist);
+	for (int i = 0; i < ASARR_SIZE(pcmdlist); i++) {
+		cdestroy(ASARR_GET(pcmdlist)[i]);
+	}
 	ASARR_DESTROY(pcmdlist);
 	free(line);
 	regfree(&tgt_reg);

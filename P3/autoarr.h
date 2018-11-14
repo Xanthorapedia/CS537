@@ -25,8 +25,7 @@ void *ASARR_strip(ASArr *asarr);
 	ASArr *name = PEONZ(malloc, sizeof(ASArr));\
 	name->size = DEFAULT_ARR_SIZE;\
 	name->arr  = PEONZ(malloc, DEFAULT_ARR_SIZE * sizeof(ASARR_##name##_type));\
-	name->used = 0;\
-	ASARR_RENEW(name);
+	name->used = 0;
 
 #define ASARR_INSERT(name, val) {\
 	ASARR_##name##_type check = val;\

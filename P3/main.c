@@ -42,10 +42,18 @@ int main(int argc, char *argv[]) {
 	// parse files
 	ASARR_INIT(goals, PGoal_t);
 	if (mparse(makefile_path, goals) != 0) {
+		for (int i = 0; i < ASARR_SIZE(goals); i++) {
+			gdestroy(ASARR_GET(goals)[i]);
+		}
+		ASARR_DESTROY(goals);
 		fprintf(stderr, "537make: *** Bad makefile.  Stop.");
 		return 1;
 	}
 	if (ASARR_SIZE(goals) == 0) {
+		for (int i = 0; i < ASARR_SIZE(goals); i++) {
+			gdestroy(ASARR_GET(goals)[i]);
+		}
+		ASARR_DESTROY(goals);
 		fprintf(stderr, "537make: *** No targets.  Stop.");
 		return 1;
 	}
@@ -53,6 +61,11 @@ int main(int argc, char *argv[]) {
 	char *appointed = optind < argc ? argv[optind] : ASARR_GET(goals)[0]->name;
 	ASARR_INIT(ulist, PGoal_t);
 	if (mcheckupdate(appointed, goals, ulist) != 0) {
+		for (int i = 0; i < ASARR_SIZE(goals); i++) {
+			gdestroy(ASARR_GET(goals)[i]);
+		}
+		ASARR_DESTROY(goals);
+		ASARR_DESTROY(ulist);
 		fprintf(stderr, "537make: *** Bad makefile.  Stop.");
 		return 1;
 	}
@@ -62,6 +75,8 @@ int main(int argc, char *argv[]) {
 		cmdexecd += goal->ncmd;
 		int ret = 0;
 		if ((ret = gupdt(goal)) != 0) {
+			ASARR_DESTROY(goals);
+			ASARR_DESTROY(ulist);
 			fprintf(stderr, "537make: *** [%s] Error %d\n", appointed, ret);
 			return 1;
 		}
