@@ -1,5 +1,11 @@
+basic_testcase: A base test case which inclues basic commands in the rule
+
 simple_testcase: A test case with a valid, but exotic makefile.
 
 basic_cycle_testcase: A testcase with a direct cycle in the graph.
 
 advanced_cycle_testcase: A testcase with a more indirect cycle.
+
+line_size_testcase: A invalid case of target line buffer overflow
+
+whitespace_testcase: A special case of whitespaces in multilple lines

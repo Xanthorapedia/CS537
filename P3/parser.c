@@ -171,7 +171,10 @@ int mparse(char *mpath, ASArr *pgoallist) {
 	hdestroy_r(&goaltable);
 
 	// clean up
-	ASARR_DESTROY(pcmdlist);
+	if (newgoal->cmd == ASARR_GET(pcmdlist))
+		ASARR_STRIP(pcmdlist);
+	else
+		ASARR_DESTROY(pcmdlist);
 	if (line != NULL)
 		free(line);
 	regfree(&tgt_reg);
