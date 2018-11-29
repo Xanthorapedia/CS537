@@ -13,12 +13,14 @@ typedef struct mem_node {
 	// depth of right branch
 	int right_depth;
 	// black node, color is 0; red node, color is 1
-	int color;
+	// int color;
 } mem_node;
 
 mem_node *ncreate(void *start_addr, size_t size);
 
-void nadd(mem_node *new_node, mem_node *root);
+mem_node *nadd(mem_node *new_node, mem_node *root);
+
+mem_node *lookup_delete(mem_node *dnode, mem_node *root);
 
 void print_status(mem_node *node);
 
