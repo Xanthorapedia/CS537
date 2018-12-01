@@ -10,7 +10,7 @@ SCAN_BUILD_DIR = scan-build-out
 
 all: $(EXE)
 
-$(EXE): main.o 537malloc.o utils.o
+$(EXE): test_main.o memavl.o utils.o autoarr.o
 	$(CC) $(CPPFLAGS) -o $(EXE) *.o
 
 clean:

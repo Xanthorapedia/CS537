@@ -2,9 +2,10 @@
 
 #define STRINGIZE_DETAIL(x) #x
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
+#define FILE_LINE __FILE__":"STRINGIZE(__LINE__)
 
 // error message on failed function call
-#define CALL_FAIL_MSG(fn) "A call to "#fn"() failed at "__FILE__":"STRINGIZE(__LINE__)"\n"
+#define CALL_FAIL_MSG(fn) "A call to "#fn"() failed at "FILE_LINE"\n"
 
 // Print Error ON Non-zero return values
 #define PEONN(fn,...) perr_neq(0, CALL_FAIL_MSG(fn), (void *) (long) fn(__VA_ARGS__))
