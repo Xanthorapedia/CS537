@@ -178,9 +178,12 @@ int lmcmp(mem_node *node0, mem_node *node1) {
 int nocmp(mem_node *node0, mem_node *node1) {
 	// returns 0 (overlap) if is of the pattern "start start end end"
 	// -1 if node0 preceeds node1, 1 otherwise
-	// *******= deleted *********
-	return (node1->interval.end < node0->interval.start)
-		 - (node0->interval.end < node1->interval.start);
+	if (node1->interval.start == node0->interval.start 
+		&& node1->interval.end == node0->interval.start) {
+		return 0;
+	}
+	return (node1->interval.end <= node0->interval.start)
+		 - (node0->interval.end <= node1->interval.start);
 }
 
 void ndestroy(mem_node *node) {

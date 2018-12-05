@@ -68,10 +68,14 @@ void *_realloc537(void *ptr, size_t size, char *fl) {
 			_free537(ptr, fl);
 		}
 		else {
+			ASARR_INIT(overlap, mem_node*);
+			find_overlap(root, ptr, 0, overlap);
+			mem_node **arr = ASARR_GET(overlap);
+			PEONN(ndel, arr[0], &root);
 			ret = PEONZ(realloc, ptr, size);
-			_free537(ptr, fl);
 			mem_node *new_node = ncreate(ret, size, 0, fl);
 			PEONN(nadd, new_node, &root);
+			ASARR_DESTROY(overlap);
 		}
 	}
 	return ret;
