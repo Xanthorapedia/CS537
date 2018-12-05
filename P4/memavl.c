@@ -10,9 +10,6 @@ inline static void adopt(mem_node *parent, mem_node *child, side lr);
 // balance factor of the node (r-l)
 inline static int bfactor(mem_node *node);
 
-// compares addresses in dictionary order (i.e. start, end)
-int dccmp(mem_node *node0, mem_node *node1);
-
 // always goes to left
 int lmcmp(mem_node *node0, mem_node *node1);
 
@@ -31,10 +28,6 @@ inline static int update_height(mem_node *node);
 
 // determines which side is the node wrt its parent
 inline static side whichside(mem_node *node);
-
-mem_i icreate(void *start_addr, size_t size) {
-	return (mem_i) { start_addr, start_addr + size };
-}
 
 mem_node *search(mem_node *inode, mem_node *root, search_op op, side *sid) {
 	int (*cmp)(mem_node *, mem_node *) = dccmp;
@@ -56,6 +49,17 @@ mem_node *search(mem_node *inode, mem_node *root, search_op op, side *sid) {
 	if (sid != NULL)
 		*sid = lr;
 	return ret;
+}
+
+mem_node *ncreate(void *start, size_t sz, int isfree, char *fl) {
+	mem_node *new_node = PEONZ(malloc, sizeof(mem_node));
+	*new_node = (mem_node) {
+		.parent = NULL,
+		.children = { NULL },
+		.interval = { start, start + sz, isfree, fl },
+		.height = 0
+	};
+	return new_node;
 }
 
 int nadd(mem_node *inode, mem_node **root) {
@@ -133,7 +137,7 @@ void find_overlap(mem_node *root, void *start, size_t sz, ASArr *overlap) {
 
 	// restore type
 	ASARR_DEFTYPE(overlap, mem_node *);
-	mem_node inode = { .interval = icreate(start, sz) };
+	mem_node inode = { .interval = { start, start + sz, 0, NULL } };
 	int cmp = nocmp(root, &inode);
 
 	// if root < inode, no need to search the left tree
@@ -174,19 +178,9 @@ int lmcmp(mem_node *node0, mem_node *node1) {
 int nocmp(mem_node *node0, mem_node *node1) {
 	// returns 0 (overlap) if is of the pattern "start start end end"
 	// -1 if node0 preceeds node1, 1 otherwise
-	return (node1->interval.end <= node0->interval.start)
-		 - (node0->interval.end <= node1->interval.start);
-}
-
-mem_node *ncreate(void *start, size_t sz) {
-	mem_node *new_node = PEONZ(malloc, sizeof(mem_node));
-	*new_node = (mem_node) {
-		.parent = NULL,
-		.children = { NULL },
-		.interval = { start, start + sz},
-		.height = 0
-	};
-	return new_node;
+	// *******= deleted *********
+	return (node1->interval.end < node0->interval.start)
+		 - (node0->interval.end < node1->interval.start);
 }
 
 void ndestroy(mem_node *node) {
@@ -260,7 +254,10 @@ inline static int update_height(mem_node *node) {
 void print_status(mem_node *node) {
 	if (node == NULL)
 		printf("<EMPTY NODE>\n");
-	printf("[%p, %p) @ %p (lvl %i)\n", node->interval.start, node->interval.end, node, node->height);
+	printf("[%p, %p) %c @ %p (lvl %i) from %s\n",
+			node->interval.start, node->interval.end,
+			node->interval.isfree ? 'f' : 'a', node,
+			node->height, node->interval.fl);
 }
 
 void check_tree_util(mem_node *root, char* line, int print) {

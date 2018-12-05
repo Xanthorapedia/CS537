@@ -11,6 +11,10 @@ typedef struct _mem_i {
 	void *start;
 	//   end of mem address (exclusive)
 	void *end;
+	// flag for whether the interval is freed, 1 is free, 0 is allocated
+	int isfree;
+	// debugging information: place of status change
+	char *fl;
 } mem_i;
 
 typedef struct mem_node {
@@ -29,10 +33,11 @@ typedef struct mem_node {
 } mem_node;
 
 
-int ncmp(mem_node *node0, mem_node *node1);
+// compares addresses in dictionary order (i.e. start, end)
+int dccmp(mem_node *node0, mem_node *node1);
 
 // You should know what those are :)
-mem_node *ncreate(void *start, size_t sz);
+mem_node *ncreate(void *start, size_t sz, int isfree, char *fl);
 void ndestroy(mem_node *node);
 
 int nadd(mem_node *inode, mem_node **root);

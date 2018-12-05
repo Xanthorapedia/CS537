@@ -45,14 +45,14 @@ int rand_add_del_test(int TESTN, int MAXAD, long seed) {
 	mem_node *root = NULL;
 	for (int i = 0; i < TESTN; i++) {
 		printf("Add 0x%x:\n", addr[ins[i]]);
-		nadd(ncreate((void *) (long) addr[ins[i]], 1), &root);
+		nadd(ncreate((void *) (long) addr[ins[i]], 1, 0, NULL), &root);
 		// change to 1 to print tree in each step
 		check_tree(root, 0);
 	}
 	// and delete
 	for (int i = 0; i < TESTN; i++) {
 		printf("Del 0x%x:\n", addr[del[i]]);
-		ndel(ncreate((void *) (long) addr[del[i]], 1), &root);
+		ndel(ncreate((void *) (long) addr[del[i]], 1, 0, NULL), &root);
 		// change to 1 to print tree in each step
 		check_tree(root, 0);
 	}
@@ -71,7 +71,7 @@ int find_interval_test(int TESTN, int MAXAD, long seed) {
 	printf("Addresses: ");
 	randarr(-1, TESTN, ins, TESTN);
 	for (int i = 0; i < TESTN; i++) {
-		nadd(ncreate((void *) (long) addr[ins[i]], 1), &root);
+		nadd(ncreate((void *) (long) addr[ins[i]], 0, 0, NULL), &root);
 		printf("0x%x ", addr[ins[i]]);
 	}
 	printf("\n");
@@ -86,7 +86,7 @@ int find_interval_test(int TESTN, int MAXAD, long seed) {
 		int start = rand() % MAXAD;
 		while (start == MAXAD - 1)
 			start = rand() % MAXAD;
-		int size  = rand() % (MAXAD - start - 1) + 1;
+		int size  = 0;//rand() % (MAXAD - start - 1) + 1;
 		printf("Interval in question: [0x%x ,0x%x)\n", start, start + size);
 
 		// search
@@ -114,5 +114,5 @@ int find_interval_test(int TESTN, int MAXAD, long seed) {
 
 int main() {
 //	rand_add_del_test(2048, 2048, time(NULL));
-	find_interval_test(10, 100, time(NULL));
+	find_interval_test(10, 10, time(NULL));
 }
