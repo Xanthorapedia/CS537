@@ -2,8 +2,8 @@
 
 make clean obj
 cd ./testcases
-rm -f ./testcases/*.[oh]
-cp ./*.h ./537malloc.o .
+rm -f ./*.[oh]
+cp ../*.h ../537malloc.o .
 make clean all
 for i in ./*.out
 do
