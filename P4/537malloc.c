@@ -1,3 +1,7 @@
+/* author1: Dasong Gao
+ * author2: Haozhe Luo
+ */
+
 #include "537malloc.h"
 
 #include "autoarr.h"
@@ -44,19 +48,19 @@ static mem_node *free_check(void *ptr) {
 	ASARR_INIT(overlap, mem_node *);
 	find_overlap(root, ptr, 0, overlap);
 	if (ASARR_SIZE(overlap) == 0) {
-		fprintf(stderr, "%p is not previously allocated\n", ptr);
+		fprintf(stderr, "Error: freeing unallocated block at %p\n", ptr);
 		die_st(3);
 	}
 	mem_node *node = ASARR_GET(overlap)[0];
 	ASARR_DESTROY(overlap);
 	if (node->interval.start != ptr) {
 		fprintf(stderr, 
-			"%p is not the starting address of the block %p\n",
+			"Error: freeing %p in the middle of an allocated block at %p\n",
 			ptr, node->interval.start);
 		die_st(3);
 	}
 	if (node->interval.isfree == 1) {
-		fprintf(stderr, "Double free of address %p\nPreviously freed at:\n", ptr);
+		fprintf(stderr, "Error: Freeing an already freed block at %p\nPreviously freed at:\n", ptr);
 		printst(node->interval.st, node->interval.nst);
 		die_st(3);
 	}
@@ -65,7 +69,7 @@ static mem_node *free_check(void *ptr) {
 
 void *malloc537(size_t size) {
 	if (size == 0) {
-		fprintf(stderr, "warning: mallocing a block of size 0\n");
+		fprintf(stderr, "Warning: mallocing a block of size 0\n");
 	}
 	void *ptr = PEONZ(malloc, size);
 	mem_node *node = malloc_helper(ptr, size);
@@ -86,6 +90,8 @@ void *realloc537(void *ptr, size_t size) {
 	if (ptr == NULL)
 		return malloc537(size);
 	if (size == 0) {
+		fprintf(stderr, "Warning: reallocing the block %p to size 0"
+				" is equivalant to freeing it\n", ptr);
 		free537(ptr);
 		return NULL;
 	}
@@ -107,13 +113,13 @@ void memcheck537(void *ptr, size_t size) {
 	ASARR_INIT(overlap, mem_node*);
 	find_overlap(root, ptr, size, overlap);
 	if (ASARR_SIZE(overlap) != 1) {
-		fprintf(stderr, "Invalid memory access\n");
+		fprintf(stderr, "Error: Invalid memory access\n");
 		die_st(3);
 	}
 	mem_i interval = ASARR_GET(overlap)[0]->interval;
 	if (interval.start <= ptr && interval.end >= ptr + size) {
 		if (interval.isfree == 1) {
-			fprintf(stderr, "Access of freed memory of block starting at %p\n",
+			fprintf(stderr, "Error: Access of freed memory of block at %p\n",
 					interval.start);
 			fprintf(stderr, "Previously freed at:\n");
 			printst(interval.st, interval.nst);
@@ -121,7 +127,7 @@ void memcheck537(void *ptr, size_t size) {
 		}
 	}
 	else {
-		fprintf(stderr, "Out-of-bound access of block starting at %p\n",
+		fprintf(stderr, "Error: Out-of-bound access of block at %p\n",
 				interval.start);
 		fprintf(stderr, "Previously allocated at:\n");
 		printst(interval.st, interval.nst);

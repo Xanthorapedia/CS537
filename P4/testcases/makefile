@@ -14,7 +14,10 @@ all: 537malloch $(TESTS)
 537malloch:
 	cp ../537malloc.h .
 
-%.out: %.c
+%.o: %.c
+	$(CC) $(CPPFLAGS)  $< -c
+
+%.out: %.o ../537malloc.o
 	$(CC) $(CPPFLAGS)  $< ../537malloc.o -o $@
 
 clean:

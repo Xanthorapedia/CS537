@@ -3,7 +3,7 @@
 
 CC = gcc
 WARNING_FLAGS = -Wall -Wextra
-EXTRA_FLAGS = -O0 -g
+EXTRA_FLAGS = -O3 -g
 CPPFLAGS = $(WARNING_FLAGS) $(EXTRA_FLAGS)
 EXE = a
 SCAN_BUILD_DIR = scan-build-out
