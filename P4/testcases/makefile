@@ -8,10 +8,14 @@ CPPFLAGS = $(WARNING_FLAGS) $(EXTRA_FLAGS)
 SCAN_BUILD_DIR = scan-build-out
 TESTS := $(shell ls *.c -1 | sed -e 's/\.c/.out/')
 
-all: $(TESTS)
+all: 537malloch $(TESTS)
+	rm ./537malloc.h -f
+
+537malloch:
+	cp ../537malloc.h .
 
 %.out: %.c
-	$(CC) $(CPPFLAGS)  $< 537malloc.o -o $@
+	$(CC) $(CPPFLAGS)  $< ../537malloc.o -o $@
 
 clean:
 	rm -rf *test*.o *.out $(SCAN_BUILD_DIR)

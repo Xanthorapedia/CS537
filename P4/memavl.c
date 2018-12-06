@@ -51,12 +51,12 @@ mem_node *search(mem_node *inode, mem_node *root, search_op op, side *sid) {
 	return ret;
 }
 
-mem_node *ncreate(void *start, size_t sz, int isfree, char *fl) {
+mem_node *ncreate(void *start, size_t sz, int isfree, int nst, char **st) {
 	mem_node *new_node = PEONZ(malloc, sizeof(mem_node));
 	*new_node = (mem_node) {
 		.parent = NULL,
 		.children = { NULL },
-		.interval = { start, start + sz, isfree, fl },
+		.interval = { start, start + sz, isfree, nst, st },
 		.height = 0
 	};
 	return new_node;
@@ -137,7 +137,7 @@ void find_overlap(mem_node *root, void *start, size_t sz, ASArr *overlap) {
 
 	// restore type
 	ASARR_DEFTYPE(overlap, mem_node *);
-	mem_node inode = { .interval = { start, start + sz, 0, NULL } };
+	mem_node inode = { .interval = { start, start + sz, 0, 0,  NULL } };
 	int cmp = nocmp(root, &inode);
 
 	// if root < inode, no need to search the left tree
@@ -187,6 +187,7 @@ int nocmp(mem_node *node0, mem_node *node1) {
 }
 
 void ndestroy(mem_node *node) {
+	free(node->interval.st);
 	free(node);
 }
 
@@ -260,7 +261,7 @@ void print_status(mem_node *node) {
 	printf("[%p, %p) %c @ %p (lvl %i) from %s\n",
 			node->interval.start, node->interval.end,
 			node->interval.isfree ? 'f' : 'a', node,
-			node->height, node->interval.fl);
+			node->height, node->interval.st[0]);
 }
 
 void check_tree_util(mem_node *root, char* line, int print) {

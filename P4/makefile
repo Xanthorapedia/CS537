@@ -15,6 +15,7 @@ $(EXE): obj test_main.o
 
 obj: 537malloc.c memavl.o utils.o autoarr.o
 	$(CC) $(CPPFLAGS) -c -o 537mem.o 537malloc.c
+	rm 537malloc.o -f
 	ld -r -o 537malloc.o *.o
 
 clean:
