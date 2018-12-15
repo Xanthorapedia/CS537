@@ -1,0 +1,35 @@
+Student NETID: dgao24
+Partner NETID: hluo45
+GRADER: Matthew Crepea
+GRADER EMAIL: crepea@cs.wisc.edu
+
+TOTAL_SCORE: 5/5
+============================================================
+SECTION 1: BEHAVIOR SECTION_SCORE: 1/1
+============================================================
+Does the program behave normally when using basic test cases?
+	INPUT: 537ps -s
+	OUTPUT: List processes with pid, state, utime, cmdline fields
+
+	SCORE - 1 Point for "Normal" Output
+		  0 Points for crashing / no output / segfault
+
+
+============================================================
+SECTION 2: -Wall -Wextra SECTION_SCORE: 1/1
+============================================================
+Does the program compile without warnings with -Wall, -Wextra?
+
+	SCORE - 1 Point for no warnings
+		  0 Points for any warnings
+
+============================================================
+SECTION 3: CSA SECTION_SCORE: 3/3
+============================================================
+How many bugs does the program have when using make scan-build?
+
+	SCORE - 
+		  3 Points for "No Bugs"
+		  2 Points for 1-2 Bugs
+		  1 Point for 3-4 Bugs
+		  0 Points for 5+ Bugs`

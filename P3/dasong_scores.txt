@@ -1,0 +1,64 @@
+Name: Dasong Gao
+NETID: dgao24
+Partner Name: Haozhe Luo
+Partner NETID: hluo45
+GRADER NAME: Shebin Roy Yesudhas
+GRADER EMAIL: royyesudhas@wisc.edu
+
+TOTAL_SCORE: 13.5/10
+===============================================================================
+PART 1: STRUCTURE
+
+PART_1_SCORE: 3.0/3
+
+	SECTION_1: COMPILATION SECTION_1_1_SCORE: 1.0/1
+		a 1/2PT) Compiling Wall Wextra
+		b 1/2PT) Scan-Build with <= 2 errors
+
+	SECTION_2: DIRECTORY STRUCTURE SECTION_1_2_SCORE: 1.0/1
+		a 1/2PT) More than 2 .c files
+		b 1/2PT) Proper Headers
+
+	SECTION_3: C PROGRAMMING PRACTICES SECTION_1_3_SCORE: 1.0/1
+		a 1/2PT) Const Variables
+		b 1/2PT) Proper checking system calls
+===============================================================================
+part 2: behavior
+
+part_2_score: 7.0/7
+===============================================================================
+
+
+	SECTION_1 fork/exec/wait section_2_1_score: 1.0/1
+		a 1pt) basic_testcase
+
+	SECTION_2 full graph section_2_2_score: 3.0/3
+		 1pt) advanced_testcase
+		b 1pt) postorder
+		c 1/2pt) fstat
+		d 1/2pt) alt_rule 
+
+	SECTION_3 error cases section_2_3_score: 3.0/3	
+		a 1/2pt) basic_cycle_testcase
+		b 1/2pt) advanced_cycle_testcase
+		c 1/2pt) whitespace
+		d 1/2pt) linesize
+		e 1/2pt) invalid_cmd
+		f 1/2pt) cmd_fails
+===============================================================================
+PART 3: BONUS
+
+PART_3_SCORE: 3.5/3.5
+===============================================================================
+
+	SECTION_1 -f OPTION SECTION_3_1_SCORE: 1.0/1
+		alt_mkfile
+
+	SECTION_2 Comments SECTION_3_2_SCORE: 0.5/0.5
+		comments
+
+	SECTION_3 IO REDIRECTION SECTION_3_3_SCORE: 2.0/2
+		io_redirect
+	
+	FINAL COMMENT:Good work on implementing I/O redirection
+

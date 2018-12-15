@@ -1,0 +1,48 @@
+Name: Dasong Gao
+NETID: dgao24
+Partner Name: Haozhe Luo
+Partner NETID: hluo45
+GRADER NAME: Aditya Barve
+GRADER EMAIL: asbarve@wisc.edu
+
+TOTAL_SCORE: 10.0/10
+===============================================================================
+PART 1: STRUCTURE
+
+PART_1_SCORE: 4.0/4
+
+	SECTION_1: COMPILATION SECTION_1_1_SCORE: 1.0/1
+		a 1/2PT) Compiling Wall Wextra
+		b 1/2PT) Scan-build <=2 errors
+
+	SECTION_2: DIRECTORY STRUCTURE SECTION_1_2_SCORE: 1.0/1
+		a 1/2PT) More than 2 .c files
+		b 1/2PT) Proper Headers
+
+	SECTION_3: C PROGRAMMING PRACTICES AND BALANCED TREE IMPLEMENTATION SECTION_1_3_SCORE: 2.0/2
+		a 1/2PT) Const Variables
+		b 1/2PT) Proper checking system calls
+		c 1/2PT) Balance func
+		d 1/2PT) Insert/Del func
+==============================================================================
+PART 2: BEHAVIOR
+
+PART_2_SCORE: 6.0/6
+
+	SECTION_1 BASIC FUNCTIONALITY MALLOC MEM-CHECK FREE SECTION_2_1_SCORE: 2.0/2
+		a 1PT) simple_testcase1 - malloc->memcheck->free
+		b 1/2PT) simple_testcase5 - malloc->memcheck->realloc->memcheck
+		b 1/2PT) simple_testcase2 - malloc(0)
+
+	SECTION_2 ADVANCED TEST CASES SECTION_2_2_SCORE: 2.0/2
+		a 1/2PT) advanced_testcase1 - Ordered alloc
+		b 1/2PT) advanced_testcase2 - Random alloc
+		c 1/2PT) advanced_testcase4 - Random size realloc
+		c 1/2PT) advanced_testcase3 - realloc(0)
+	If time taken > 3 minutes (zero points)
+
+	SECTION_3 ERROR CASES SECTION_2_3_SCORE: 2.0/2
+		a 1/2PT) simple_testcase4 - Double free
+		b 1/2PT) overlap_testcast - Overlap memory check
+		c 1/2PT) error_testcase2 - free from not start of address
+		d 1/2PT) error_testcase3 - free from invalid address

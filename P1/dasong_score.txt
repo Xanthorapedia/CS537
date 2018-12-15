@@ -1,0 +1,50 @@
+Student NETID: dgao24
+Partner NETID: hluo45
+
+TOTAL_SCORE: 9.5/10
+============================================================
+SECTION 1: STRUCTURE (4 pt)
+
+SECTION_1_SCORE: 3.5/4
+============================================================
+1] DIRECTORY ORGANIZATION (1 pt)
+	
+1_1_QUESTION_SCORE: 1/1
+
+2] CODE STRUCTURE (2 pt)
+	b)
+	- Does each .c files encapsulate a logical part of code/data structure?
+	- Does each .h file act as a minimal interface to functions, structs in .c file?
+	While each function in utils.c encapsulate a logical part of the code, we were looking for
+	a breakdown of functions into .c files that acted as modules, not having all external
+	helper functions in one .c file.
+
+	For example, the two printing functions could have been put in one .c, while safe file
+	openning and reading files could have been put into another. This would have given a
+	better logical breakdown of your code into multiple files.
+	
+1_2_QUESTION_SCORE: 1.5/2
+
+3] C CODING PRACTICES(1 pt)
+	
+1_3_QUESTION_SCORE: 1/1
+============================================================
+SECTION 2: PROGRAM BEHAVIOR (6 pt)
+
+SECTION_2_SCORE: 6/6
+============================================================
+1] PARSING /proc DIRECTORY (2 pt)
+
+2_1_QUESTION_SCORE: 2/2
+
+2] BASIC OPTIONS PROCESSING (1 pt)
+	
+2_2_QUESTION_SCORE: 1/1
+	
+3] PARSING stat, statm, cmdline FILES (2 pt)
+
+2_3_QUESTION_SCORE: 2/2
+
+4] ADVANCED OPTIONS PROCESSING
+
+2_4_QUESTION_SCORE: 1/1
